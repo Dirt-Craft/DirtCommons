@@ -1,6 +1,0 @@
-project.version = project.ext.apiVersion
-
-dependencies {
-    implementation project(':common')
-    compile "org.spongepowered:configurate-hocon:$configurateVersion"
-}
