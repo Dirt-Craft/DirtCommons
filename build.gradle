@@ -1,0 +1,45 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    project.ext.name = modName
+    project.ext.modid = modId
+    group = "net.dirtcraft.${modId}"
+    version = '5.3-SNAPSHOT'
+    project.ext.mixinConfig = "${project.ext.modid}.mixins.json"
+    project.ext.refmap = "${project.ext.modid}.refmap.json"
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    def determinePatchVersion = {
+        // get the name of the last tag
+        def tagInfo = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', "--tag"
+            standardOutput = tagInfo
+        }
+        tagInfo = tagInfo.toString()
+
+        if (!tagInfo.contains('-')) {
+            return 0
+        }
+        return tagInfo.split("-")[1]
+    }
+
+    project.ext.majorVersion = versionMajor
+    project.ext.minorVersion = versionMinor
+    project.ext.patchVersion = determinePatchVersion()
+    project.ext.apiVersion = project.ext.majorVersion + '.' + project.ext.minorVersion
+    project.ext.fullVersion = project.ext.apiVersion + '.' + project.ext.patchVersion
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'https://repo.lucko.me/' }
+    }
+}
