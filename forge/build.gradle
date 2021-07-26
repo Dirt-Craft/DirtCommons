@@ -25,17 +25,18 @@ group = "net.dirtcraft.${modId}"
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 configurations {
+    shadowRun
     shadowImpl
     shadowAPI
     implimentation.extendsFrom(shadowImpl)
-    api.extendsFrom(shadowAPI)
+    compile.extendsFrom(shadowAPI)
+    runtime.extendsFrom(shadowRun)
 }
 
 dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.2:processor")
     minecraft 'net.minecraftforge:forge:1.16.5-36.1.25'
     shadowAPI project(':common')
-    shadowAPI project(':api')
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
@@ -78,7 +79,7 @@ processResources {
 }
 
 shadowJar {
-    configurations = [project.configurations.shadowImpl, project.configurations.shadowAPI]
+    configurations = [project.configurations.shadowImpl, project.configurations.shadowAPI, project.configurations.shadowRun]
     archiveName = archivesBaseName
     dependencies {
         //exclude('net.minecraft.forge:.*')
