@@ -5,17 +5,18 @@ import net.dirtcraft.dirtcommons.api.tasks.Task;
 
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
-public class CommonTask<T, S> implements Task<T>, Comparable<CommonTask<?, ?>> {
+public class CommonTask<T, U> implements Task<U>, Comparable<CommonTask<?, ?>> {
     protected final AbstractTaskDispatcher.ThreadType thread;
     protected final ScheduleType type;
     protected final long executionTimestamp;
-    protected final Function<T, S> execute;
-    protected CommonTask<S, ?> next = null;
+    protected final Function<T, U> execute;
+    protected CommonTask<U, ?> next = null;
     protected volatile T arg;
-    protected volatile S ret;
-    public CommonTask(Function<T, S> execute, AbstractTaskDispatcher.ThreadType thread, AbstractTaskDispatcher dispatcher, long time, Delay unit) {
+    protected volatile U ret;
+    public CommonTask(Function<T, U> execute, AbstractTaskDispatcher.ThreadType thread, AbstractTaskDispatcher dispatcher, long time, Delay unit) {
         this.thread = thread;
         this.execute = execute;
         this.type = time <= 0? ScheduleType.INSTANTLY: unit == Delay.TICKS? ScheduleType.TICK_TIME: ScheduleType.REAL_TIME;
@@ -58,25 +59,24 @@ public class CommonTask<T, S> implements Task<T>, Comparable<CommonTask<?, ?>> {
         return Objects.hash(type, executionTimestamp, execute);
     }
 
-    public abstract static class Builder<T, S> implements Task.Builder<S> {
-        protected CommonTask<?, ?> root = null;
-        protected CommonTask<?, T> parent = null;
-        protected AbstractTaskDispatcher.ThreadType thread;
-        protected AbstractTaskDispatcher dispatcher;
-        protected long delay;
-        protected Delay unit;
-        protected Function<T, S> execute;
+    public abstract static class Builder<T> implements Task.Builder<T> {
+        protected final AbstractTaskDispatcher dispatcher;
+        protected final CommonTask<?, ?> root;
+        protected CommonTask<?, T> current;
 
-        public <U> Builder<S, U> thenApply(Function<S, U> run, boolean async, long delay, Delay unit) {
-            CommonTask<T, S> task = new CommonTask<>(this.execute, this.thread, this.dispatcher, this.delay, this.unit);
-            if (root == null) root = task;
-            else parent.next = task;
-            Builder<S, U> b = (Builder<S, U>)this;
-            b.thread = async? AbstractTaskDispatcher.ThreadType.ASYNC: AbstractTaskDispatcher.ThreadType.SERVER;
-            b.delay = delay;
-            b.unit = unit;
-            b.execute = run;
-            b.parent = task;
+        protected Builder(AbstractTaskDispatcher dispatcher, Supplier<T> run, boolean async, long delay, Delay unit) {
+            this.dispatcher = dispatcher;
+            AbstractTaskDispatcher.ThreadType thread = async? AbstractTaskDispatcher.ThreadType.ASYNC: AbstractTaskDispatcher.ThreadType.SERVER;
+            CommonTask<?, T> task = new CommonTask<>(a->run.get(), thread, dispatcher, delay, unit);
+            root = current = task;
+        }
+
+        public <U> Builder<U> thenApply(Function<T, U> run, boolean async, long delay, Delay unit) {
+            AbstractTaskDispatcher.ThreadType thread = AbstractTaskDispatcher.ThreadType.getType(async);
+            CommonTask<T, U> task = new CommonTask<>(run, thread, dispatcher, delay, unit);
+            current.next = task;
+            Builder<U> b = (Builder<U>)this;
+            b.current = task;
             return b;
         }
     }

@@ -70,6 +70,10 @@ public abstract class AbstractTaskDispatcher extends Thread {
         };
 
         public abstract Executor getExecutor(AbstractTaskDispatcher dispatcher);
+
+        public static ThreadType getType(boolean async){
+            return async? ASYNC: SERVER;
+        }
     }
 
     private static final AtomicInteger count = new AtomicInteger(1);

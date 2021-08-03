@@ -1,7 +1,5 @@
 package net.dirtcraft.dirtcommons.api.tasks;
 
-import net.dirtcraft.dirtcommons.lib.threads.CommonTask;
-
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -9,7 +7,7 @@ import java.util.function.Supplier;
 public interface Task<T> {
 
     interface Builder<S> {
-        <U> CommonTask.Builder<S, U> thenApply(Function<S, U> run, boolean async, long delay, Delay unit);
+        <U> Builder<U> thenApply(Function<S, U> run, boolean async, long delay, Delay unit);
 
         default Builder<Void> thenAccept(Consumer<S> run, boolean async, long delay, Delay unit) {
             return thenApply(s->{
@@ -37,11 +35,11 @@ public interface Task<T> {
             return thenApply(run, true, 0L, null);
         }
 
-        default <U> CommonTask.Builder<S, U> thenApply(Function<S, U> run, long delay, Delay unit) {
+        default <U> Builder<U> thenApply(Function<S, U> run, long delay, Delay unit) {
             return thenApply(run, false, delay, unit);
         }
 
-        default <U> CommonTask.Builder<S, U> thenApplyAsync(Function<S, U> run, long delay, Delay unit) {
+        default <U> Builder<U> thenApplyAsync(Function<S, U> run, long delay, Delay unit) {
             return thenApply(run, true, delay, unit);
         }
 
