@@ -3,6 +3,7 @@ package net.dirtcraft.dirtcommons.lib.threads;
 import net.dirtcraft.dirtcommons.api.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
@@ -28,6 +29,10 @@ public abstract class AbstractTaskScheduler extends Thread {
 
     public void register(Task<?> task){
         this.inbound.offer((CommonTask<?, ?>) task);
+    }
+
+    public void register(Collection<? extends Task<?>> tasks){
+        tasks.forEach(this::register);
     }
 
     @Override

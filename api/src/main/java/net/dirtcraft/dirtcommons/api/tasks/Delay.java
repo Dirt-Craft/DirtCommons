@@ -17,7 +17,8 @@ public enum Delay {
     MINUTES(TimeUnit.MINUTES::toMillis),
     HOURS(TimeUnit.HOURS::toMillis),
     DAYS(TimeUnit.DAYS::toMillis),
-    TICKS(t->t /*"* 50"*/);
+    TICKS(t->t /*"* 50"*/),
+    NONE(t->0);
     private final LongToLongFunction func;
     Delay(LongToLongFunction func){
         this.func = func;

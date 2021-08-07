@@ -1,10 +1,13 @@
 package net.dirtcraft.dirtcommons.api.tasks;
 
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Task<T> {
+public interface Task<T> extends Future<T> {
+
+
 
     interface Builder<S> {
         <U> Builder<U> thenApply(Function<S, U> run, boolean async, long delay, Delay unit);
