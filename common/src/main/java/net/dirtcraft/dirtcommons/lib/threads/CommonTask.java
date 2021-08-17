@@ -4,31 +4,27 @@ import net.dirtcraft.dirtcommons.api.tasks.Delay;
 import net.dirtcraft.dirtcommons.api.tasks.Task;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-public class CommonTask<T, U> implements Task<U> {
-    protected final List<CommonTask<U, ?>> next;
-    protected final Function<T, U> execute;
-    protected final boolean async;
-    protected final Delay delayUnit;
-    protected final long delayLength;
-    protected long delayUntil;
+public abstract class CommonTask<T, R> implements Task<R> {
+    protected boolean async;
+    protected Delay delayUnit;
+    protected long delayLength;
+
+    protected volatile long executeAfter;
     protected volatile Thread worker;
-    protected volatile State state;
+    protected volatile State state = State.REGISTERING;
     protected volatile Exception err;
-    protected volatile U result;
-    protected volatile T arg;
+    protected volatile R result;
 
-    public CommonTask(Function<T, U> execute, boolean async, long time, Delay unit) {
+    protected abstract R execute();
+
+    protected abstract boolean repeating();
+
+    public CommonTask(boolean async, long time, Delay unit) {
         this.async = async;
-        this.execute = execute;
         this.delayLength = time;
         this.delayUnit = unit;
-        this.next = new ArrayList<>();
     }
 
     @Override
@@ -48,7 +44,7 @@ public class CommonTask<T, U> implements Task<U> {
     }
 
     @Override
-    public U get() throws InterruptedException, ExecutionException {
+    public R get() throws InterruptedException, ExecutionException {
         if (err != null) throw new ExecutionException(err);
         if (state.finished) return result;
         wait();
@@ -56,7 +52,7 @@ public class CommonTask<T, U> implements Task<U> {
     }
 
     @Override
-    public U get(long timeout, @NotNull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public R get(long timeout, @NotNull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (err != null) throw new ExecutionException(err);
         if (state.finished) return result;
         wait(unit.toMillis(timeout));
@@ -65,64 +61,30 @@ public class CommonTask<T, U> implements Task<U> {
     }
 
     public boolean canExecute(AbstractTaskScheduler dispatcher) {
-        if (setState(State.REGISTERING, State.WAITING) == State.REGISTERING) {
-            if (delayUnit == Delay.TICKS) delayUntil = dispatcher.getCurrentGameTick() + delayLength;
-        } else delayUntil = delayUnit.toMs(delayLength);
-        if (delayUnit == Delay.TICKS) return delayUntil <= dispatcher.getCurrentGameTick();
-        else return delayUntil >= System.currentTimeMillis();
+        if (delayUnit == Delay.TICKS) return executeAfter <= dispatcher.getCurrentGameTick();
+        else return executeAfter >= System.currentTimeMillis();
+    }
+
+    protected boolean calculateDelay(AbstractTaskScheduler dispatcher) {
+        if (setState(State.REGISTERING, State.WAITING) != State.WAITING) return false;
+        if (delayUnit == Delay.TICKS) executeAfter = dispatcher.getCurrentGameTick() + delayLength;
+        else executeAfter = delayUnit.toMs(delayLength);
+        return true;
     }
 
     public void execute(AbstractTaskScheduler dispatcher) {
-        if (setState(State.WAITING, State.EXECUTING) != State.EXECUTING) {
-            notifyAll();
-            return;
-        }
-        dispatcher.getExecutor(async).execute(()->{
-            if (state != State.EXECUTING) {
-                notifyAll();
-                return;
-            }
-            else this.worker = Thread.currentThread();
-            try {
-                result = execute.apply(arg);
-                setState(State.EXECUTING, State.FINISHED_SUCCESS);
-                dispatcher.register(next);
-            } catch (Exception e) {
-                setState(State.EXECUTING, State.FINISHED_FAILURE);
-                e.printStackTrace();
-            } finally {
-                notifyAll();
-            }
-            if (next != null) {
-                next.forEach(next->next.arg = result);
-            }
-        });
+        if (setState(State.WAITING, State.EXECUTING) != State.EXECUTING) notifyAll();
+        else dispatcher.getExecutor(async).execute(()-> run(dispatcher));
     }
 
-    private synchronized State setState(State expected, State updated){
+    protected abstract void run(AbstractTaskScheduler dispatcher);
+
+    synchronized State setState(State expected, State updated){
         if (state == expected) state = updated;
         return state;
     }
 
-    public abstract static class Builder<T> implements Task.Builder<T> {
-        protected final CommonTask<?, ?> root;
-        protected CommonTask<?, T> current;
-
-        public Builder(Supplier<T> run, boolean async, long delay, Delay unit) {
-            CommonTask<?, T> task = new CommonTask<>(a->run.get(), async, delay, unit);
-            root = current = task;
-        }
-
-        public <U> Builder<U> thenApply(Function<T, U> run, boolean async, long delay, Delay unit) {
-            CommonTask<T, U> task = new CommonTask<>(run, async, delay, unit);
-            current.next.add(task);
-            Builder<U> b = (Builder<U>)this;
-            b.current = task;
-            return b;
-        }
-    }
-
-    private enum State{
+    enum State{
         REGISTERING(false),
         WAITING(false),
         EXECUTING(false),

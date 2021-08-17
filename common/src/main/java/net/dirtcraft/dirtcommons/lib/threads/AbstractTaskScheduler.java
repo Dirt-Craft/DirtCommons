@@ -28,7 +28,7 @@ public abstract class AbstractTaskScheduler extends Thread {
     }
 
     public void register(Task<?> task){
-        this.inbound.offer((CommonTask<?, ?>) task);
+        if (((CommonTask<?, ?>) task).calculateDelay(this)) this.inbound.offer((CommonTask<?, ?>) task);
     }
 
     public void register(Collection<? extends Task<?>> tasks){
@@ -42,12 +42,11 @@ public abstract class AbstractTaskScheduler extends Thread {
             this.gameTick = getCurrentGameTick();
             while (!inbound.isEmpty()) tasks.add(inbound.poll());
             Iterator<CommonTask<?, ?>> iter = tasks.iterator();
-            while (iter.hasNext()){
+            while (iter.hasNext()) {
                 CommonTask<?, ?> task = iter.next();
                 if (!task.canExecute(this)) continue;
                 task.execute(this);
-                if (task.next == task) continue;
-                iter.remove();
+                if (!task.repeating()) iter.remove();
             }
         } catch (Exception e){
             e.printStackTrace();
