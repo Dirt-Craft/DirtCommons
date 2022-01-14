@@ -1,18 +1,5 @@
-/*/ Fabric Needs this
-pluginManagement {
-    repositories {
-        jcenter()
-        maven {
-            url 'https://maven.fabricmc.net/'
-        }
-        gradlePluginPortal()
-    }
-}
- */
-
 rootProject.name = modName
 include (
-        'api',
         'common',
-        'forge',
+        'forge'
 )
