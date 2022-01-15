@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.util;
+package net.dirtcraft.dirtcommons.util;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;

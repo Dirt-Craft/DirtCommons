@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "package": "net.dirtcraft.dirtcommons.core.mixins",
+  "refmap": "${refmap}",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "CommandSourceMixin",
+    "SEntityHeadLookPacketMixin",
+    "SEntityPacketMixin",
+    "SEntityTeleportPacketMixin",
+    "SEntityVelocityPacketMixin",
+    "ServerPlayerEntityMixin",
+    "ServerPlayNetHandlerMixin",
+    "SSpawnPlayerPacketMixin",
+    "PlayerListMixin",
+    "SEntityMetadataPacketMixin",
+    "SPlayerListItemPacketMixin",
+    "STeamsPacketMixin",
+    "TrackedEntityMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

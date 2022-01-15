@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.config;
+package net.dirtcraft.dirtcommons.config;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;

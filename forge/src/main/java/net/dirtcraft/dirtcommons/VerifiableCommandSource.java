@@ -1,4 +1,4 @@
-package net.dirtcraft.commons;
+package net.dirtcraft.dirtcommons;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 

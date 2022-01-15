@@ -1,6 +1,6 @@
-package net.dirtcraft.commons.config;
+package net.dirtcraft.dirtcommons.config;
 
-import net.dirtcraft.commons.command.CommandElement;
+import net.dirtcraft.dirtcommons.command.CommandElement;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;

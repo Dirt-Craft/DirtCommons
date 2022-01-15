@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.command;
+package net.dirtcraft.dirtcommons.command;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.util.text.Color;

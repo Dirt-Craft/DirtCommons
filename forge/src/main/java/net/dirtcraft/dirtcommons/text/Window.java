@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.text;
+package net.dirtcraft.dirtcommons.text;
 
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -6,10 +6,8 @@ import net.minecraft.util.text.StringTextComponent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.dirtcraft.commons.text.Colors.*;
-import static net.dirtcraft.commons.text.Colors.DARK_RED;
-import static net.dirtcraft.commons.text.Styles.PADDING;
-import static net.dirtcraft.commons.text.Styles.PADDING_CH;
+import static net.dirtcraft.dirtcommons.text.Colors.*;
+import static net.dirtcraft.dirtcommons.text.Colors.DARK_RED;
 
 public class Window {
     protected List<IFormattableTextComponent> text;
@@ -30,11 +28,11 @@ public class Window {
     }
 
     protected IFormattableTextComponent getHeader(String title) {
-        String[] titleText = (Styles.padCenter("\\" + title + "\\", 38, PADDING_CH) + "\n").split("\\\\");
+        String[] titleText = (Styles.padCenter("\\" + title + "\\", 38, Styles.PADDING_CH) + "\n").split("\\\\");
         return new StringTextComponent("")
-                .append(new StringTextComponent(titleText[0]).withStyle(PADDING))
+                .append(new StringTextComponent(titleText[0]).withStyle(Styles.PADDING))
                 .append(new StringTextComponent(String.format(" %s ", titleText[1])).withStyle(Styles.as(WHITE)))
-                .append(new StringTextComponent(titleText[2]).withStyle(PADDING));
+                .append(new StringTextComponent(titleText[2]).withStyle(Styles.PADDING));
     }
 
     private IFormattableTextComponent getFooter() {

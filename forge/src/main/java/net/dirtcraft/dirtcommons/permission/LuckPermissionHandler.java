@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package net.dirtcraft.commons.permission;
+package net.dirtcraft.dirtcommons.permission;
 
 import com.mojang.authlib.GameProfile;
 import net.luckperms.api.LuckPerms;

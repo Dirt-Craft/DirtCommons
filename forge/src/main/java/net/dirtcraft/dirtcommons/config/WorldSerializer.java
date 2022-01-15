@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.config;
+package net.dirtcraft.dirtcommons.config;
 
 import net.minecraft.world.World;
 import org.checkerframework.checker.nullness.qual.Nullable;

@@ -1,6 +1,5 @@
-package net.dirtcraft.commons.text;
+package net.dirtcraft.dirtcommons.text;
 
-import net.dirtcraft.commons.text.Colors;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;

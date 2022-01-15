@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.text;
+package net.dirtcraft.dirtcommons.text;
 
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -6,9 +6,7 @@ import net.minecraft.util.text.StringTextComponent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.dirtcraft.commons.text.Colors.*;
-import static net.dirtcraft.commons.text.Styles.PADDING;
-import static net.dirtcraft.commons.text.Styles.PADDING_CH;
+import static net.dirtcraft.dirtcommons.text.Colors.*;
 
 public class Paginator extends Window {
     private final int elementsPerPage;

@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.text;
+package net.dirtcraft.dirtcommons.text;
 
 import net.minecraft.util.text.Color;
 

@@ -1,4 +1,4 @@
-package net.dirtcraft.commons.util;
+package net.dirtcraft.dirtcommons.util;
 
 import com.mojang.authlib.GameProfile;
 import net.luckperms.api.LuckPerms;

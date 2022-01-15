@@ -1,6 +1,6 @@
-package net.dirtcraft.commons.command;
+package net.dirtcraft.dirtcommons.command;
 
-import net.dirtcraft.commons.text.Styles;
+import net.dirtcraft.dirtcommons.text.Styles;
 import net.minecraft.command.CommandSource;
 import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static net.dirtcraft.commons.text.Colors.*;
+import static net.dirtcraft.dirtcommons.text.Colors.*;
 
 public class CommandSetElement<T, S> implements CommandElement<T> {
     private static final TextComponent HOVER = new StringTextComponent("Click to edit!");
