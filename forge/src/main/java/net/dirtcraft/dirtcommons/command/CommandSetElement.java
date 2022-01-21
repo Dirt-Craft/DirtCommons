@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static net.dirtcraft.dirtcommons.text.Colors.*;
+import static net.dirtcraft.dirtcommons.text.Colors.DARK_GREY;
+import static net.dirtcraft.dirtcommons.text.Colors.RED;
 
 public class CommandSetElement<T, S> implements CommandElement<T> {
     private static final TextComponent HOVER = new StringTextComponent("Click to edit!");

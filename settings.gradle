@@ -1,5 +1,6 @@
 rootProject.name = modName
 include (
+        'api',
         'common',
         'forge'
 )

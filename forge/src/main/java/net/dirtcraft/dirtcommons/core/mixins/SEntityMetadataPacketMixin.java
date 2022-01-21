@@ -1,7 +1,7 @@
 package net.dirtcraft.dirtcommons.core.mixins;
 
 import net.dirtcraft.dirtcommons.core.api.EntityGlowPacket;
-import net.dirtcraft.dirtcommons.core.api.CommonsPlayer;
+import net.dirtcraft.dirtcommons.user.CommonsPlayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -41,7 +41,7 @@ public class SEntityMetadataPacketMixin implements EntityGlowPacket {
         if (viewerSettings.isTracking(subject)) return true;
         if (!(subject instanceof CommonsPlayer)) return false;
         CommonsPlayer subjectSettings = (CommonsPlayer) subject;
-        return viewerSettings.isWallHacking() || subjectSettings.isGlowAgent();
+        return viewerSettings.canSeePlayerOutlines() || subjectSettings.isGlowing();
     }
 
     @Unique

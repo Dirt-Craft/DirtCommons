@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.server.permission.PermissionAPI;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,28 +14,28 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class NBTConfig<T> {
-    private final String permission;
     private final Path folder;
-    private final T DEFAULT;
-    private final Map<String, CommandElement<T>> commandElements = new LinkedHashMap<>();
     private final Supplier<T> tFactory;
+    private final Map<String, CommandElement<T>> commandElements = new LinkedHashMap<>();
     protected final Map<PlayerEntity, T> settings = new HashMap<>();
 
-    public NBTConfig(Path folder, Supplier<T> tFactory, T DEFAULT) {
-        this(folder, tFactory, null, DEFAULT);
-    }
-
-    public NBTConfig(Path folder, Supplier<T> tFactory, String permission, T DEFAULT) {
+    public NBTConfig(Path folder, Supplier<T> tFactory) {
         this.folder = folder;
-        this.DEFAULT = DEFAULT;
         this.tFactory = tFactory;
-        this.permission = permission;
         MinecraftForge.EVENT_BUS.addListener(this::onLogin);
         MinecraftForge.EVENT_BUS.addListener(this::onLogout);
     }
 
-    public T getOrDummy(PlayerEntity player){
-        return settings.getOrDefault(player, DEFAULT);
+    public T getOrCreate(PlayerEntity player){
+        return settings.computeIfAbsent(player, p->tFactory.get());
+    }
+
+    public T get(PlayerEntity player){
+        return settings.get(player);
+    }
+
+    public T getOrDefault(PlayerEntity player, T def){
+        return settings.getOrDefault(player, def);
     }
 
     public void unload(PlayerEntity player){
@@ -45,7 +44,6 @@ public abstract class NBTConfig<T> {
     }
 
     public void load(PlayerEntity player) {
-        if (permission != null && !PermissionAPI.hasPermission(player, permission)) return;
         UUID playerId = player.getGameProfile().getId();
         File data = getUserData(playerId);
         if (data.exists()) {
@@ -56,15 +54,6 @@ public abstract class NBTConfig<T> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else {
-            data.getParentFile().mkdirs();
-            try {
-                data.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            this.settings.put(player, tFactory.get());
-            this.save(player);
         }
     }
 

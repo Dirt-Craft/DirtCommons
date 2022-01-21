@@ -4,6 +4,10 @@ import com.mojang.authlib.GameProfile;
 import net.dirtcraft.dirtcommons.config.ColorSerializer;
 import net.dirtcraft.dirtcommons.config.ItemSerializer;
 import net.dirtcraft.dirtcommons.config.WorldSerializer;
+import net.dirtcraft.dirtcommons.permission.Permissions;
+import net.dirtcraft.dirtcommons.threads.ForgeThreadManager;
+import net.dirtcraft.dirtcommons.threads.ThreadManager;
+import net.dirtcraft.dirtcommons.util.PermissionHelper;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.util.Tristate;
@@ -20,6 +24,18 @@ import java.awt.*;
 public class ForgeCommons extends Commons {
     public static final String MOD_ID = "dirtcommons";
     private static ForgeCommons INSTANCE;
+    private PermissionHelper permissionHelper = new PermissionHelper();
+    private ForgeThreadManager threadManager = new ForgeThreadManager();
+
+    @Override
+    public Permissions getPermissionHelper() {
+        return permissionHelper;
+    }
+
+    @Override
+    public ThreadManager getScheduler() {
+        return threadManager;
+    }
 
     public static ForgeCommons getInstance(){
         return INSTANCE;
@@ -27,9 +43,11 @@ public class ForgeCommons extends Commons {
 
     public ForgeCommons(){
         this.INSTANCE = this;
+        //FMLJavaModLoadingContext.get().getModEventBus().register(this);
         registerDefaultSerializer(Item.class, new ItemSerializer());
         registerDefaultSerializer(World.class, new WorldSerializer());
         registerDefaultSerializer(Color.class, new ColorSerializer());
+
     }
 
     protected boolean hasPermission(@NonNull GameProfile profile, @NonNull String node) {

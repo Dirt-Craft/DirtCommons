@@ -1,8 +1,10 @@
 package net.dirtcraft.dirtcommons.core.mixins;
 
 import net.dirtcraft.dirtcommons.core.api.CustomTeamPacket;
+import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
 import net.dirtcraft.dirtcommons.core.api.TeamsList;
-import net.dirtcraft.dirtcommons.core.api.CommonsPlayer;
+import net.dirtcraft.dirtcommons.user.CommonsPlayer;
+import net.dirtcraft.dirtcommons.util.ColorUtils;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.IPacket;
 import net.minecraft.scoreboard.ServerScoreboard;
@@ -22,11 +24,10 @@ import java.util.List;
 
 @Mixin(PlayerList.class)
 public abstract class PlayerListMixin implements TeamsList {
-    @Shadow @Final private List<ServerPlayerEntity> players;
 
     @Shadow public abstract void broadcastAll(IPacket<?> p_148540_1_);
 
-    private final List<CommonsPlayer> customTeams = new ArrayList<>();
+    private final List<ForgePlayer> customTeams = new ArrayList<>();
     @Inject(method = "updateEntireScoreboard", at = @At("TAIL"))
     public void onUpdateScoreboard(ServerScoreboard p_96456_1_, ServerPlayerEntity p_96456_2_, CallbackInfo ci) {
         customTeams.forEach(p->p_96456_2_.connection.send(CustomTeamPacket.getInstance().setData(p)));
@@ -34,9 +35,9 @@ public abstract class PlayerListMixin implements TeamsList {
 
     @Override
     public void addCustomData(ServerPlayerEntity player, TextFormatting color, IFormattableTextComponent prefix) {
-        CommonsPlayer playerSettings = (CommonsPlayer) player;
-        playerSettings.setColor(color);
-        playerSettings.setPrefix(prefix.append(" "));
+        ForgePlayer playerSettings = (ForgePlayer) player;
+        if (color != null) playerSettings.setColor(ColorUtils.toLegacy(color));
+        if (prefix != null) playerSettings.setPrefix(prefix.append(" "));
         if (!customTeams.contains(player)) customTeams.add(playerSettings);
         broadcastAll(CustomTeamPacket.getInstance().setData(playerSettings));
     }
@@ -45,7 +46,7 @@ public abstract class PlayerListMixin implements TeamsList {
     @SuppressWarnings("SuspiciousMethodCalls")
     public void removeCustomData(ServerPlayerEntity player) {
         customTeams.remove(player);
-        broadcastAll(CustomTeamPacket.getInstance().setData((CommonsPlayer) player));
+        broadcastAll(CustomTeamPacket.getInstance().setData((ForgePlayer) player));
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")

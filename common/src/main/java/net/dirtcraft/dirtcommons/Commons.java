@@ -1,8 +1,8 @@
 package net.dirtcraft.dirtcommons;
 
-import net.dirtcraft.dirtcommons.util.Cycler;
 import net.dirtcraft.dirtcommons.configuration.serializers.CyclerSerializer;
 import net.dirtcraft.dirtcommons.configuration.serializers.HashSetSerializer;
+import net.dirtcraft.dirtcommons.util.Cycler;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 
@@ -16,9 +16,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class Commons {
+public abstract class Commons extends DirtCommons {
     private BiConsumer<Type, TypeSerializer<?>> register;
     public Commons() {
+        DirtCommons.INSTANCE = this;
         try {
             final TypeSerializerCollection serializers = TypeSerializerCollection.defaults();
             Field field = serializers.getClass().getDeclaredField("serializers");

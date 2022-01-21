@@ -1,8 +1,8 @@
 package net.dirtcraft.dirtcommons.command;
 
+import net.dirtcraft.dirtcommons.text.Styles;
 import net.dirtcraft.dirtcommons.util.Object2BooleanFunction;
 import net.dirtcraft.dirtcommons.util.ObjectBooleanConsumer;
-import net.dirtcraft.dirtcommons.text.Styles;
 import net.minecraft.command.CommandSource;
 import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;

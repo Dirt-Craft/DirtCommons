@@ -1,7 +1,10 @@
 package net.dirtcraft.dirtcommons.core.api;
 
+import net.dirtcraft.dirtcommons.user.CommonsPlayer;
+import net.dirtcraft.dirtcommons.util.ColorUtils;
 import net.minecraft.network.play.server.STeamsPacket;
 import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 
 public interface CustomTeamPacket {
@@ -18,14 +21,14 @@ public interface CustomTeamPacket {
         return setData(prefix, null, player);
     }
 
-    default STeamsPacket setData(CommonsPlayer player){
-        return setData(player.getPrefix(), player.getSuffix(), player.getColor(), player.fbi$getName());
+    default STeamsPacket setData(ForgePlayer player){
+        return setData(player.getPrefix(), player.getSuffix(), ColorUtils.fromLegacy(player.getColor()), player.getUserName());
     }
 
-    default STeamsPacket setData(IFormattableTextComponent prefix, TextFormatting color, String... player){
+    default STeamsPacket setData(ITextComponent prefix, TextFormatting color, String... player){
         return setData(prefix, null, color, player);
     }
 
-    STeamsPacket setData(IFormattableTextComponent prefix, IFormattableTextComponent suffix, TextFormatting color, String... player);
+    STeamsPacket setData(ITextComponent prefix, ITextComponent suffix, TextFormatting color, String... player);
 
 }

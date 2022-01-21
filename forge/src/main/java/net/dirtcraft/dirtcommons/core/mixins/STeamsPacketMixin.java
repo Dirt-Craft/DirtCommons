@@ -23,7 +23,7 @@ public class STeamsPacketMixin implements CustomTeamPacket {
 
 
     @Override
-    public STeamsPacket setData(IFormattableTextComponent prefix, IFormattableTextComponent suffix, TextFormatting color, String... player) {
+    public STeamsPacket setData(ITextComponent prefix, ITextComponent suffix, TextFormatting color, String... player) {
         if (prefix != null) this.playerPrefix = prefix;
         if (suffix != null) this.playerSuffix = prefix;
         if (color != null) this.color = color;

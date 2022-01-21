@@ -1,7 +1,7 @@
 package net.dirtcraft.dirtcommons.core.mixins;
 
-import net.dirtcraft.dirtcommons.core.api.CommonsPlayer;
 import net.dirtcraft.dirtcommons.core.api.TrackedViewerPacket;
+import net.dirtcraft.dirtcommons.user.CommonsPlayer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;

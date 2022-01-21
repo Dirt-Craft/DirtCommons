@@ -2,9 +2,9 @@ package net.dirtcraft.dirtcommons.core.mixins;
 
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import net.dirtcraft.dirtcommons.core.api.CommonsPlayer;
 import net.dirtcraft.dirtcommons.core.api.LocationPacket;
 import net.dirtcraft.dirtcommons.core.api.TrackedViewerPacket;
+import net.dirtcraft.dirtcommons.user.CommonsPlayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.IPacket;

@@ -6,8 +6,8 @@ import net.minecraft.util.text.StringTextComponent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.dirtcraft.dirtcommons.text.Colors.*;
 import static net.dirtcraft.dirtcommons.text.Colors.DARK_RED;
+import static net.dirtcraft.dirtcommons.text.Colors.WHITE;
 
 public class Window {
     protected List<IFormattableTextComponent> text;
