@@ -1,6 +1,7 @@
 package net.dirtcraft.dirtcommons.configuration;
 
 import io.leangen.geantyref.TypeToken;
+import net.dirtcraft.dirtcommons.Commons;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 
@@ -8,9 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class ConfigurationHocon<T> {
+    private final static Executor threadPool = Commons.getInstance().getScheduler().getAsyncExecutor();
     private final AtomicBoolean isDirty = new AtomicBoolean();
     private final AtomicBoolean saving = new AtomicBoolean();
     private final HoconConfigurationLoader loader;
@@ -65,6 +68,6 @@ public abstract class ConfigurationHocon<T> {
                     return false;
                 }
             }
-        });
+        }, threadPool);
     }
 }

@@ -10,7 +10,7 @@ buildscript {
     }
 }
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.1'
+    id 'com.github.johnrengelman.shadow' version '6.1.+'
 }
 apply plugin: 'java-library'
 apply plugin: 'net.minecraftforge.gradle'
@@ -32,7 +32,7 @@ configurations {
     //shadowRun
     //shadowImpl
     //shadowAPI
-    implimentation.extendsFrom(shadowImpl)
+    implementation.extendsFrom(shadowImpl)
     api.extendsFrom(shadowAPI)
     //shadowAPI.extendsFrom(api)
     runtime.extendsFrom(shadowRun)
@@ -46,7 +46,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     minecraft 'net.minecraftforge:forge:1.16.5-36.1.25'
     shadowAPI project(':common')
-    compileOnly 'net.luckperms:api:5.3'
+    shadowImpl 'net.luckperms:api:5.3'
     runtimeOnly fg.deobf('net.luckperms:LuckPerms-Forge:5.3.474')
 }
 
@@ -153,6 +153,9 @@ jar {
 
 shadowJar {
     configurations = [project.configurations.shadowImpl, project.configurations.shadowAPI, project.configurations.shadowRun]
+    relocate 'org.spongepowered.configurate',   'net.dirtcraft.libs.sponge.configurate'
+    relocate 'io.leangen',                      'net.dirtcraft.libs.leangen'
+    relocate 'com.typesafe',                    'net.dirtcraft.libs.typesafe'
     archiveName = archivesBaseName
     dependencies {
 
@@ -160,7 +163,7 @@ shadowJar {
 }
 
 task wrapper(type: Wrapper){
-    gradleVersion = '7.1'
+    gradleVersion = '7.2'
 }
 
 mixin {

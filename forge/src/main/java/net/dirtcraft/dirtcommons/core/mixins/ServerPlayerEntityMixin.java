@@ -57,6 +57,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     @Unique private short vanish$viewLevel;
     @Unique private short vanish$level;
     @Unique private User permission$user;
+    @Unique private String chat$nickname;
+    @Unique private ITextComponent chat$displayName;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void constructor(MinecraftServer p_i45285_1_, ServerWorld p_i45285_2_, GameProfile p_i45285_3_, PlayerInteractionManager p_i45285_4_, CallbackInfo ci){
@@ -74,12 +76,12 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     }
 
     @Override
-    public boolean isGlowing() {
+    public boolean isUserGlowing() {
         return team$glowing;
     }
 
     @Override
-    public void setGlowing(boolean value) {
+    public void setUserGlowing(boolean value) {
         this.team$glowing = value;
     }
 
@@ -185,5 +187,23 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     @Override
     public void setSuffix(ITextComponent suffix) {
         this.team$suffix = suffix;
+    }
+
+    public String getNickname() {
+        return this.chat$nickname;
+    }
+
+    public void setNickname(String nick){
+        this.chat$nickname = nick;
+    }
+
+    @Override
+    public ITextComponent getDisplayName() {
+        return chat$displayName;
+    }
+
+    @Override
+    public void setDisplayName(ITextComponent name) {
+        this.chat$displayName = name;
     }
 }

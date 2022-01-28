@@ -4,6 +4,7 @@ import net.minecraft.util.text.TextFormatting;
 
 public class ColorUtils {
     public static TextFormatting fromLegacy(LegacyColors colors){
+        if (colors == null) return null;
         switch (colors) {
             case BLACK: return TextFormatting.BLACK;
             case DARK_BLUE: return TextFormatting.DARK_BLUE;
@@ -30,6 +31,7 @@ public class ColorUtils {
         }
     }
     public static LegacyColors toLegacy(TextFormatting colors){
+        if (colors == null) return null;
         switch (colors) {
             case BLACK: return LegacyColors.BLACK;
             case DARK_BLUE: return LegacyColors.DARK_BLUE;

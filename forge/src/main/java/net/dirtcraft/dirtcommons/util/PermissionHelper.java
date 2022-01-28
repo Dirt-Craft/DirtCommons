@@ -5,6 +5,7 @@ import net.dirtcraft.dirtcommons.permission.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.context.ImmutableContextSet;
+import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
@@ -19,8 +20,11 @@ import net.minecraftforge.server.permission.context.IContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class PermissionHelper implements Permissions {
     private Commands commands;
@@ -33,13 +37,51 @@ public class PermissionHelper implements Permissions {
     }
 
     @Override
+    public String getServerContext(){
+        return contexts.getAnyValue("server").orElse("global");
+    }
+
+    @Override
     public boolean initialized() {
         return lp != null;
     }
 
     @Override
+    public void clearGroupMeta(String group, String node) {
+        String command = String.format("lp group %s meta clear %s %s", group, node, getServerContext());
+        commands.performCommand(console, command);
+    }
+
+    @Override
     public void setGroupMeta(String group, String node, String value){
-        String command = String.format("lp group %s meta set %s %s %s", group, node, value, getServerContext());
+        if (value == null) {
+            clearGroupMeta(group, node);
+            return;
+        }
+        value = value.replaceAll("\"", "");
+        String command = String.format("lp group %s meta set %s \"%s\" %s", group, node, value, getServerContext());
+        commands.performCommand(console, command);
+    }
+
+    @Override
+    public void setGroupPrefix(String group, String value){
+        if (value == null) {
+            clearGroupMeta(group, "prefix");
+            return;
+        }
+        value = value.replaceAll("\"", "");
+        String command = String.format("lp group %s meta setprefix \"%s\" %s", group, value, getServerContext());
+        commands.performCommand(console, command);
+    }
+
+    @Override
+    public void setGroupSuffix(String group, String value){
+        if (value == null) {
+            clearGroupMeta(group, "suffix");
+            return;
+        }
+        value = value.replaceAll("\"", "");
+        String command = String.format("lp group %s meta setsuffix \"%s\" %s", group, value, getServerContext());
         commands.performCommand(console, command);
     }
 
@@ -50,14 +92,103 @@ public class PermissionHelper implements Permissions {
     }
 
     @Override
-    public void setUserMeta(String user, String node, String value){
-        String command = String.format("lp user %s meta set %s %s %s", user, node, value, getServerContext());
+    public void clearUserMeta(UUID user, String node) {
+        String command = String.format("lp user %s meta clear %s %s", user.toString(), node, getServerContext());
         commands.performCommand(console, command);
     }
 
     @Override
-    public void setUserPermission(String user, String node, boolean value){
-        String command = String.format("lp user %s permission set %s %b %s", user, node, value, getServerContext());
+    public void setUserMeta(UUID user, String node, String value){
+        if (value == null) {
+            clearUserMeta(user, node);
+            return;
+        }
+        value = value.replaceAll("\"", "");
+        String command = String.format("lp user %s meta set %s \"%s\" %s", user.toString(), node, value, getServerContext());
+        commands.performCommand(console, command);
+    }
+
+    @Override
+    public void setUserPrefix(UUID user, String value){
+        if (value == null) {
+            clearUserMeta(user, "prefix");
+            return;
+        }
+        value = value.replaceAll("\"", "");
+        String command = String.format("lp user %s meta setprefix \"%s\" %s", user.toString(), value, getServerContext());
+        commands.performCommand(console, command);
+    }
+
+    @Override
+    public void setUserSuffix(UUID user, String value){
+        if (value == null) {
+            clearUserMeta(user, "suffix");
+            return;
+        }
+        value = value.replaceAll("\"", "");
+        String command = String.format("lp user %s meta setsuffix \"%s\" %s", user.toString(), value, getServerContext());
+        commands.performCommand(console, command);
+    }
+
+    @Override
+    public Collection<String> getUserGroups(UUID user) {
+        User p = lp.getUserManager().getUser(user);
+        if (p == null) return Collections.EMPTY_LIST;
+        else return p.getInheritedGroups(p.getQueryOptions())
+                .stream()
+                .map(Group::getName)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getUserGroup(UUID user) {
+        User p = lp.getUserManager().getUser(user);
+        if (p == null) return null;
+        else return p.getPrimaryGroup();
+    }
+
+    @Override
+    public String getUserIndicator(UUID user) {
+        User p = lp.getUserManager().getUser(user);
+        if (p == null) return null;
+        return p.getCachedData()
+                .getMetaData()
+                .getMetaValue(Permissions.RANK_INDICATOR);
+    }
+
+    @Override
+    public String getGroupMeta(String group, String node) {
+        Group g = lp.getGroupManager().getGroup(group);
+        if (g == null) return null;
+        else return g.getCachedData().getMetaData().getMetaValue(node);
+    }
+
+    @Override
+    public String getGroupPrefix(String group) {
+        Group g = lp.getGroupManager().getGroup(group);
+        if (g == null) return null;
+        else return g.getCachedData().getMetaData().getPrefix();
+    }
+
+    @Override
+    public String getGroupSuffix(String group) {
+        Group g = lp.getGroupManager().getGroup(group);
+        if (g == null) return null;
+        else return g.getCachedData().getMetaData().getSuffix();
+    }
+
+    @Override
+    public String getGroupIndicator(String group) {
+        Group g = lp.getGroupManager().getGroup(group);
+        if (g == null) return null;
+        return g.getCachedData()
+                .getMetaData()
+                .getMetaValue(Permissions.RANK_INDICATOR);
+    }
+
+    @Override
+    public void setUserPermission(UUID user, String node, boolean value){
+        String command = String.format("lp user %s permission set %s %b %s", user.toString(), node, value, getServerContext());
         commands.performCommand(console, command);
     }
 
@@ -117,10 +248,6 @@ public class PermissionHelper implements Permissions {
     public String getUserSuffix(UUID uuid){
         User user = lp.getUserManager().getUser(uuid);
         return getUserSuffix(user);
-    }
-
-    public String getServerContext(){
-        return contexts.getAnyValue("server").orElse("global");
     }
 
     public boolean hasPermission(@NonNull GameProfile profile, @NonNull String node, @Nullable IContext context) {

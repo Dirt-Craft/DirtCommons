@@ -41,7 +41,7 @@ public class SEntityMetadataPacketMixin implements EntityGlowPacket {
         if (viewerSettings.isTracking(subject)) return true;
         if (!(subject instanceof CommonsPlayer)) return false;
         CommonsPlayer subjectSettings = (CommonsPlayer) subject;
-        return viewerSettings.canSeePlayerOutlines() || subjectSettings.isGlowing();
+        return viewerSettings.canSeePlayerOutlines() || subjectSettings.isUserGlowing();
     }
 
     @Unique

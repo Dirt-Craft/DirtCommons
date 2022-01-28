@@ -8,6 +8,10 @@ import net.minecraft.util.text.ITextComponent;
 public interface ForgePlayer extends CommonsPlayer<ServerPlayerEntity, Entity> {
     ITextComponent getPrefix();
     void setPrefix(ITextComponent prefix);
+
     ITextComponent getSuffix();
     void setSuffix(ITextComponent suffix);
+
+    ITextComponent getDisplayName();
+    void setDisplayName(ITextComponent name);
 }

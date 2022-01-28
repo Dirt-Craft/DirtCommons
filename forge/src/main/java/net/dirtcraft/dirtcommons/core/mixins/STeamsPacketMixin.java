@@ -25,7 +25,7 @@ public class STeamsPacketMixin implements CustomTeamPacket {
     @Override
     public STeamsPacket setData(ITextComponent prefix, ITextComponent suffix, TextFormatting color, String... player) {
         if (prefix != null) this.playerPrefix = prefix;
-        if (suffix != null) this.playerSuffix = prefix;
+        if (suffix != null) this.playerSuffix = suffix;
         if (color != null) this.color = color;
         this.name = UUID.randomUUID().toString().substring(0, 15);
         this.players.addAll(Arrays.asList(player));

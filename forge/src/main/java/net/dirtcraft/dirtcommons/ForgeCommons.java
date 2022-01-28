@@ -4,9 +4,11 @@ import com.mojang.authlib.GameProfile;
 import net.dirtcraft.dirtcommons.config.ColorSerializer;
 import net.dirtcraft.dirtcommons.config.ItemSerializer;
 import net.dirtcraft.dirtcommons.config.WorldSerializer;
+import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
 import net.dirtcraft.dirtcommons.permission.Permissions;
 import net.dirtcraft.dirtcommons.threads.ForgeThreadManager;
 import net.dirtcraft.dirtcommons.threads.ThreadManager;
+import net.dirtcraft.dirtcommons.user.PlayerList;
 import net.dirtcraft.dirtcommons.util.PermissionHelper;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -16,25 +18,22 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.awt.*;
+import java.nio.file.Path;
 
 @Mod(ForgeCommons.MOD_ID)
-public class ForgeCommons extends Commons {
+public class ForgeCommons extends Commons<ForgePlayer> {
     public static final String MOD_ID = "dirtcommons";
     private static ForgeCommons INSTANCE;
     private PermissionHelper permissionHelper = new PermissionHelper();
     private ForgeThreadManager threadManager = new ForgeThreadManager();
 
-    @Override
-    public Permissions getPermissionHelper() {
-        return permissionHelper;
-    }
-
-    @Override
-    public ThreadManager getScheduler() {
-        return threadManager;
+    public static Path getConfigPath(String modId) {
+        return FMLPaths.GAMEDIR.get().resolve(FMLPaths.CONFIGDIR.get()).resolve(modId);
     }
 
     public static ForgeCommons getInstance(){
@@ -48,6 +47,22 @@ public class ForgeCommons extends Commons {
         registerDefaultSerializer(World.class, new WorldSerializer());
         registerDefaultSerializer(Color.class, new ColorSerializer());
 
+    }
+
+    @Override
+    public Permissions getPermissionHelper() {
+        return permissionHelper;
+    }
+
+    @Override
+    public ThreadManager getScheduler() {
+        return threadManager;
+    }
+
+    @Override
+    public PlayerList<ForgePlayer> getPlayers() {
+        //noinspection unchecked
+        return (PlayerList<ForgePlayer>) ServerLifecycleHooks.getCurrentServer().getPlayerList();
     }
 
     protected boolean hasPermission(@NonNull GameProfile profile, @NonNull String node) {

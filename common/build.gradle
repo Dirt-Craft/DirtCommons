@@ -2,4 +2,5 @@ apply plugin: 'java-library'
 
 dependencies {
     api project(':api')
+    compileOnly 'net.luckperms:api:5.3'
 }

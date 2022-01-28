@@ -3,9 +3,9 @@ package net.dirtcraft.dirtcommons.user;
 import net.dirtcraft.dirtcommons.util.LegacyColors;
 
 public interface TeamPlayer {
-    boolean isGlowing();
+    boolean isUserGlowing();
 
-    void setGlowing(boolean value);
+    void setUserGlowing(boolean value);
 
     LegacyColors getColor();
 
