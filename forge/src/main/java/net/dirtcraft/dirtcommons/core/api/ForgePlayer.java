@@ -6,12 +6,11 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.text.ITextComponent;
 
 public interface ForgePlayer extends CommonsPlayer<ServerPlayerEntity, Entity> {
-    ITextComponent getPrefix();
-    void setPrefix(ITextComponent prefix);
+    ITextComponent getUserChatDisplayName();
+    ITextComponent getUserTabListDisplayName();
+    ITextComponent getUserCompactDisplayName();
 
-    ITextComponent getSuffix();
-    void setSuffix(ITextComponent suffix);
-
-    ITextComponent getDisplayName();
-    void setDisplayName(ITextComponent name);
+    void setUserChatDisplayName(ITextComponent name);
+    void setUserTabListDisplayName(ITextComponent name);
+    void setUserCompactDisplayName(ITextComponent name);
 }

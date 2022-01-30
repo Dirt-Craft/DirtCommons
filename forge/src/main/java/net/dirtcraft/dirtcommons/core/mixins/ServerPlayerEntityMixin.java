@@ -1,5 +1,6 @@
 package net.dirtcraft.dirtcommons.core.mixins;
 
+import com.google.common.collect.HashBiMap;
 import com.mojang.authlib.GameProfile;
 import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
 import net.dirtcraft.dirtcommons.util.LegacyColors;
@@ -8,13 +9,15 @@ import net.luckperms.api.model.user.User;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.play.ServerPlayNetHandler;
 import net.minecraft.network.play.server.SEntityMetadataPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerInteractionManager;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,46 +26,53 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import javax.annotation.Nullable;
+import java.util.*;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ForgePlayer {
     private ServerPlayerEntityMixin(World a, BlockPos b, float c, GameProfile d) {super(a,b,c,d); throw new Error("the fuck you doing?");}
-
-    @Override
-    public boolean isSpectator() {
-        return false;
-    }
-
-    @Override
-    public boolean isCreative() {
-        return false;
-    }
-
     @Shadow public ServerPlayNetHandler connection;
     @Shadow public abstract void take(Entity p_71001_1_, int p_71001_2_);
-
     @Shadow public abstract boolean canHarmPlayer(PlayerEntity p_96122_1_);
+    @Shadow public abstract void readAdditionalSaveData(CompoundNBT p_70037_1_);
 
     @Unique private boolean team$glowing;
-    @Unique private ITextComponent team$prefix;
-    @Unique private ITextComponent team$suffix;
     @Unique private LegacyColors team$color;
     @Unique private boolean vanish$wallHacking;
     @Unique private Set<Entity> vanish$tracking;
     @Unique private short vanish$viewLevel;
     @Unique private short vanish$level;
     @Unique private User permission$user;
-    @Unique private String chat$nickname;
-    @Unique private ITextComponent chat$displayName;
+    @Unique private ITextComponent chat$displayChat;
+    @Unique private ITextComponent chat$displayTab;
+    @Unique private ITextComponent chat$displayComp;
+    @Unique private ITextComponent chat$display;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void constructor(MinecraftServer p_i45285_1_, ServerWorld p_i45285_2_, GameProfile p_i45285_3_, PlayerInteractionManager p_i45285_4_, CallbackInfo ci){
         vanish$tracking = new HashSet<>();
+    }
+
+    @Inject(method = "getTabListDisplayName", at = @At("HEAD"), cancellable = true)
+    public void getTabListDisplayName(CallbackInfoReturnable<ITextComponent> cir) {
+        cir.setReturnValue(getUserTabListDisplayName());
+    }
+
+    @Inject(method = "restoreFrom", at = @At("HEAD"))
+    public void onRestore(ServerPlayerEntity p_193104_1_, boolean p_193104_2_, CallbackInfo ci){
+        ServerPlayerEntityMixin sep = (ServerPlayerEntityMixin) (Object) p_193104_1_;
+        this.team$glowing = sep.team$glowing;
+        this.team$color = sep.team$color;
+        this.vanish$wallHacking = sep.vanish$wallHacking;
+        this.vanish$viewLevel = sep.vanish$viewLevel;
+        this.vanish$level = sep.vanish$level;
+        this.permission$user = sep.permission$user;
+        this.chat$displayChat = sep.chat$displayChat;
+        this.chat$displayTab = sep.chat$displayTab;
+        this.chat$display = sep.chat$display;
     }
 
     @Override
@@ -170,40 +180,32 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     }
 
     @Override
-    public ITextComponent getPrefix() {
-        return this.team$prefix;
+    public void setUserChatDisplayName(ITextComponent name) {
+        chat$displayChat = name;
     }
 
     @Override
-    public void setPrefix(ITextComponent prefix) {
-        this.team$prefix = prefix;
+    public void setUserTabListDisplayName(ITextComponent name) {
+        chat$displayTab = name;
     }
 
     @Override
-    public ITextComponent getSuffix() {
-        return team$suffix;
+    public void setUserCompactDisplayName(ITextComponent name) {
+        chat$displayComp = name;
     }
 
     @Override
-    public void setSuffix(ITextComponent suffix) {
-        this.team$suffix = suffix;
-    }
-
-    public String getNickname() {
-        return this.chat$nickname;
-    }
-
-    public void setNickname(String nick){
-        this.chat$nickname = nick;
+    public ITextComponent getUserChatDisplayName() {
+        return chat$displayChat == null? this.getDisplayName() : chat$displayChat;
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return chat$displayName;
+    public ITextComponent getUserTabListDisplayName() {
+        return chat$displayTab == null? this.getDisplayName() : chat$displayTab;
     }
 
     @Override
-    public void setDisplayName(ITextComponent name) {
-        this.chat$displayName = name;
+    public ITextComponent getUserCompactDisplayName() {
+        return chat$displayComp == null? this.getDisplayName() : chat$displayComp;
     }
 }

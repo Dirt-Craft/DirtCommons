@@ -1,6 +1,7 @@
 package net.dirtcraft.dirtcommons;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.CommandDispatcher;
 import net.dirtcraft.dirtcommons.config.ColorSerializer;
 import net.dirtcraft.dirtcommons.config.ItemSerializer;
 import net.dirtcraft.dirtcommons.config.WorldSerializer;
@@ -14,6 +15,7 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.util.Tristate;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;

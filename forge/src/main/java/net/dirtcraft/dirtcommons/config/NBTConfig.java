@@ -17,7 +17,7 @@ public abstract class NBTConfig<T> {
     private final Path folder;
     private final Supplier<T> tFactory;
     private final Map<String, CommandElement<T>> commandElements = new LinkedHashMap<>();
-    protected final Map<PlayerEntity, T> settings = new HashMap<>();
+    protected final Map<UUID, T> settings = new HashMap<>();
 
     public NBTConfig(Path folder, Supplier<T> tFactory) {
         this.folder = folder;
@@ -27,20 +27,20 @@ public abstract class NBTConfig<T> {
     }
 
     public T getOrCreate(PlayerEntity player){
-        return settings.computeIfAbsent(player, p->tFactory.get());
+        return settings.computeIfAbsent(player.getGameProfile().getId(), p->tFactory.get());
     }
 
     public T get(PlayerEntity player){
-        return settings.get(player);
+        return settings.get(player.getGameProfile().getId());
     }
 
     public T getOrDefault(PlayerEntity player, T def){
-        return settings.getOrDefault(player, def);
+        return settings.getOrDefault(player.getGameProfile().getId(), def);
     }
 
     public void unload(PlayerEntity player){
         save(player);
-        settings.remove(player);
+        settings.remove(player.getGameProfile().getId());
     }
 
     public void load(PlayerEntity player) {
@@ -50,7 +50,7 @@ public abstract class NBTConfig<T> {
             try {
                 CompoundNBT nbt = CompressedStreamTools.read(data);
                 T settings = load(nbt);
-                this.settings.put(player, settings);
+                this.settings.put(playerId, settings);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -59,9 +59,9 @@ public abstract class NBTConfig<T> {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void save(PlayerEntity player) {
-        T settings = this.settings.get(player);
-        if (settings == null) return;
         UUID playerId = player.getGameProfile().getId();
+        T settings = this.settings.get(playerId);
+        if (settings == null) return;
         File data = getUserData(playerId);
         try {
             data.mkdirs();

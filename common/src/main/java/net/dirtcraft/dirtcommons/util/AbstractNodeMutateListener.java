@@ -16,7 +16,7 @@ import net.luckperms.api.node.Node;
 import java.util.*;
 import java.util.function.Consumer;
 
-public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>> {
+public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>, U extends AbstractNodeMutateListener<T, U>> {
     private LuckPerms lp;
     private Consumer<T> onUpdate;
     private PlayerList<T> pList;
@@ -25,15 +25,43 @@ public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>> 
     public AbstractNodeMutateListener(Consumer<T> onUpdate) {
         this.onUpdate = onUpdate;
         nodes = new ArrayList<>();
-        nodes.add("group.");
+        nodes.add("group");
     }
 
-    public void addTrackedNode(String node) {
+    @SuppressWarnings("unchecked")
+    public U addTrackedMetaNode(String node) {
+        nodes.add("meta." + (node.replaceAll("\\.", "\\\\.")));
+        return (U) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U addTrackedMetaNodes(Collection<String> nodes) {
+        for (String node: nodes) addTrackedMetaNode(node);
+        return (U) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U addTrackedMetaNodes(String... nodes) {
+        for (String node: nodes) addTrackedMetaNode(node);
+        return (U) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U addTrackedNode(String node) {
         nodes.add(node);
+        return (U) this;
     }
 
-    public void addTrackedNodes(Collection<String> nodes) {
-        this.nodes.addAll(nodes);
+    @SuppressWarnings("unchecked")
+    public U addTrackedNodes(Collection<String> nodes) {
+        for (String node: nodes) addTrackedNode(node);
+        return (U) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U addTrackedNodes(String... nodes) {
+        for (String node: nodes) addTrackedNode(node);
+        return (U) this;
     }
 
     private List<EventSubscription<?>> subs;

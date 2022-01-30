@@ -131,6 +131,40 @@ public class PermissionHelper implements Permissions {
     }
 
     @Override
+    public <T> T getMetaOrDefault(UUID uuid, String key, Function<String, T> mapper, T def){
+        try {
+            User user = lp.getUserManager().getUser(uuid);
+            if (user == null) return def;
+            String val = getMeta(user, key);
+            if (val == null) return def;
+            else return mapper.apply(val);
+        } catch (Exception e){
+            return def;
+        }
+    }
+
+    @Override
+    public String getUserMeta(UUID user, String node) {
+        User p = lp.getUserManager().getUser(user);
+        if (p == null) return null;
+        return p.getCachedData()
+                .getMetaData()
+                .getMetaValue(node);
+    }
+
+    @Override
+    public String getUserPrefix(UUID uuid){
+        User user = lp.getUserManager().getUser(uuid);
+        return getUserPrefix(user);
+    }
+
+    @Override
+    public String getUserSuffix(UUID uuid){
+        User user = lp.getUserManager().getUser(uuid);
+        return getUserSuffix(user);
+    }
+
+    @Override
     public Collection<String> getUserGroups(UUID user) {
         User p = lp.getUserManager().getUser(user);
         if (p == null) return Collections.EMPTY_LIST;
@@ -145,15 +179,6 @@ public class PermissionHelper implements Permissions {
         User p = lp.getUserManager().getUser(user);
         if (p == null) return null;
         else return p.getPrimaryGroup();
-    }
-
-    @Override
-    public String getUserIndicator(UUID user) {
-        User p = lp.getUserManager().getUser(user);
-        if (p == null) return null;
-        return p.getCachedData()
-                .getMetaData()
-                .getMetaValue(Permissions.RANK_INDICATOR);
     }
 
     @Override
@@ -178,15 +203,6 @@ public class PermissionHelper implements Permissions {
     }
 
     @Override
-    public String getGroupIndicator(String group) {
-        Group g = lp.getGroupManager().getGroup(group);
-        if (g == null) return null;
-        return g.getCachedData()
-                .getMetaData()
-                .getMetaValue(Permissions.RANK_INDICATOR);
-    }
-
-    @Override
     public void setUserPermission(UUID user, String node, boolean value){
         String command = String.format("lp user %s permission set %s %b %s", user.toString(), node, value, getServerContext());
         commands.performCommand(console, command);
@@ -202,18 +218,6 @@ public class PermissionHelper implements Permissions {
         else return user.getCachedData()
                 .getMetaData()
                 .getMetaValue(key);
-    }
-
-    public <T> T getMetaOrDefault(UUID uuid, String key, Function<String, T> mapper, T def){
-        try {
-            User user = lp.getUserManager().getUser(uuid);
-            if (user == null) return def;
-            String val = getMeta(user, key);
-            if (val == null) return def;
-            else return mapper.apply(val);
-        } catch (Exception e){
-            return def;
-        }
     }
 
     public <T> T getMetaOrDefault(User user, String key, Function<String, T> mapper, T def){
@@ -233,21 +237,11 @@ public class PermissionHelper implements Permissions {
                 .getPrefix();
     }
 
-    public String getUserPrefix(UUID uuid){
-        User user = lp.getUserManager().getUser(uuid);
-        return getUserPrefix(user);
-    }
-
     public String getUserSuffix(User user){
         if (user == null) return null;
         else return user.getCachedData()
                 .getMetaData()
                 .getSuffix();
-    }
-
-    public String getUserSuffix(UUID uuid){
-        User user = lp.getUserManager().getUser(uuid);
-        return getUserSuffix(user);
     }
 
     public boolean hasPermission(@NonNull GameProfile profile, @NonNull String node, @Nullable IContext context) {

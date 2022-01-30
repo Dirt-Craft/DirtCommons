@@ -3,11 +3,8 @@ package net.dirtcraft.dirtcommons.user;
 import net.dirtcraft.dirtcommons.DirtCommons;
 import net.dirtcraft.dirtcommons.permission.Permissible;
 import net.dirtcraft.dirtcommons.permission.Permissions;
-import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.group.Group;
-import net.luckperms.api.model.group.GroupManager;
 import net.luckperms.api.model.user.User;
-import net.luckperms.api.query.QueryOptions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Collection;
@@ -23,10 +20,6 @@ public interface CommonsPlayer<T extends S, S> extends Permissible, Vanishable<S
     String getUserName();
 
     UUID getUserId();
-
-    String getNickname();
-
-    void setNickname(String nick);
 
     default String getMeta(String key){
         return getUser().getCachedData()
@@ -50,10 +43,18 @@ public interface CommonsPlayer<T extends S, S> extends Permissible, Vanishable<S
         return getUser().getPrimaryGroup();
     }
 
+    default String getNickname() {
+        return getMeta(Permissions.PLAYER_NICKNAME);
+    }
+
+    default void setNickname(String nick) {
+        DirtCommons.getInstance()
+                .getPermissionHelper()
+                .setUserNick(getUserId(), nick);
+    }
+
     default String getUserRankIndicator(){
-        return getUser().getCachedData()
-                .getMetaData()
-                .getMetaValue(Permissions.RANK_INDICATOR);
+        return getMeta(Permissions.RANK_INDICATOR);
     }
 
     default boolean rankIndicatorRedundant(){

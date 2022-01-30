@@ -10,7 +10,7 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import java.util.function.Consumer;
 
-public class ForgeNodeMutateListener extends AbstractNodeMutateListener<ForgePlayer> {
+public class ForgeNodeMutateListener extends AbstractNodeMutateListener<ForgePlayer, ForgeNodeMutateListener> {
 
     public ForgeNodeMutateListener(Consumer<ForgePlayer> onUpdate) {
         super(onUpdate);

@@ -1,5 +1,7 @@
 package net.dirtcraft.dirtcommons.core.mixins;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import net.dirtcraft.dirtcommons.core.api.CustomTeamPacket;
 import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -13,9 +15,11 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
 
@@ -23,12 +27,24 @@ import java.util.*;
 public abstract class PlayerListMixin implements net.dirtcraft.dirtcommons.user.PlayerList<ForgePlayer> {
     @Shadow public abstract List<ServerPlayerEntity> getPlayers();
     @Shadow @javax.annotation.Nullable public abstract ServerPlayerEntity getPlayer(UUID p_177451_1_);
-    private final Set<ForgePlayer> customTeams = new HashSet<>();
+    @Unique private final Set<ForgePlayer> customTeams = new HashSet<>();
+    @Unique private final Map<String, ForgePlayer> nameMap = new HashMap<>();
 
     @Override
     public List<ForgePlayer> getOnlinePlayers() {
         //noinspection unchecked
         return (List<ForgePlayer>)(Object) getPlayers();
+    }
+
+    @Override
+    public @Nullable ForgePlayer getOnlinePlayer(UUID uuid) {
+        return (ForgePlayer) getPlayer(uuid);
+    }
+
+    @Override
+    public @Nullable ForgePlayer getOnlinePlayer(String name) {
+        if (name == null) return null;
+        else return nameMap.get(name);
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
@@ -41,14 +57,21 @@ public abstract class PlayerListMixin implements net.dirtcraft.dirtcommons.user.
         customTeams.forEach(p->p_96456_2_.connection.send(CustomTeamPacket.getInstance().setData(p)));
     }
 
+    @Inject(method = "Lnet/minecraft/server/management/PlayerList;addPlayer(Lnet/minecraft/entity/player/ServerPlayerEntity;)Z", at = @At("HEAD"), remap = false)
+    public void onAddPlayer(ServerPlayerEntity player, CallbackInfoReturnable<Boolean> cir){
+        ForgePlayer p = (ForgePlayer) player;
+        nameMap.put(p.getUserName(), p);
+    }
+
+    @Inject(method = "Lnet/minecraft/server/management/PlayerList;removePlayer(Lnet/minecraft/entity/player/ServerPlayerEntity;)Z", at = @At("HEAD"), remap = false)
+    public void onRemovePlayer(ServerPlayerEntity player, CallbackInfoReturnable<Boolean> cir){
+        ForgePlayer p = (ForgePlayer) player;
+        nameMap.remove(p.getUserName(), p);
+    }
+
     @SuppressWarnings("SuspiciousMethodCalls")
     public void onPlayerLogoffEvent(PlayerEvent.PlayerLoggedOutEvent event) {
         customTeams.remove(event.getPlayer());
-    }
-
-    @Override
-    public @Nullable ForgePlayer getOnlinePlayer(UUID uuid) {
-        return (ForgePlayer) getPlayer(uuid);
     }
 
     @Override
