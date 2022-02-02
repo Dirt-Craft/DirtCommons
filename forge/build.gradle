@@ -41,12 +41,13 @@ configurations {
 }
 
 repositories {
-    flatDir { dirs 'libs' }
+    flatDir { dirs '../libs' }
 }
 
 dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     minecraft 'net.minecraftforge:forge:1.16.5-36.1.25'
+
     shadowAPI project(':common')
     shadowImpl 'net.luckperms:api:5.3'
     runtimeOnly fg.deobf('net.luckperms:LuckPerms-Forge:5.3.474')

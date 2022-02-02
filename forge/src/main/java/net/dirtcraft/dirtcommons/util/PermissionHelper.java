@@ -1,19 +1,26 @@
 package net.dirtcraft.dirtcommons.util;
 
 import com.mojang.authlib.GameProfile;
+import net.dirtcraft.dirtcommons.ForgeCommons;
+import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
 import net.dirtcraft.dirtcommons.permission.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.context.ImmutableContextSet;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
+import net.luckperms.api.node.types.MetaNode;
+import net.luckperms.api.node.types.PrefixNode;
+import net.luckperms.api.node.types.SuffixNode;
+import net.luckperms.api.query.QueryOptions;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.context.IContext;
@@ -22,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,41 +56,44 @@ public class PermissionHelper implements Permissions {
 
     @Override
     public void clearGroupMeta(String group, String node) {
-        String command = String.format("lp group %s meta clear %s %s", group, node, getServerContext());
-        commands.performCommand(console, command);
+        if (lp.getGroupManager().getGroup(group) == null) return;
+        lp.getGroupManager().modifyGroup(group, g->{
+            g.data().clear(contexts, n->isMatchingMeta(n, node));
+        });
     }
 
     @Override
     public void setGroupMeta(String group, String node, String value){
-        if (value == null) {
-            clearGroupMeta(group, node);
-            return;
-        }
-        value = value.replaceAll("\"", "");
-        String command = String.format("lp group %s meta set %s \"%s\" %s", group, node, value, getServerContext());
-        commands.performCommand(console, command);
+        if (lp.getGroupManager().getGroup(group) == null) return;
+        if (value == null) clearGroupMeta(group, node);
+        else lp.getGroupManager().modifyGroup(group, g->{
+            g.data().clear(contexts, n->isMatchingMeta(n, node));
+            g.data().add(MetaNode.builder(node, value).context(contexts).build());
+        });
     }
 
     @Override
     public void setGroupPrefix(String group, String value){
-        if (value == null) {
-            clearGroupMeta(group, "prefix");
-            return;
-        }
-        value = value.replaceAll("\"", "");
-        String command = String.format("lp group %s meta setprefix \"%s\" %s", group, value, getServerContext());
-        commands.performCommand(console, command);
+        if (lp.getGroupManager().getGroup(group) == null) return;
+        if (value == null) lp.getGroupManager().modifyGroup(group, g-> g.data().clear(contexts, NodeType.PREFIX::matches));
+        else lp.getGroupManager().modifyGroup(group, g->{
+            g.data().clear(contexts, NodeType.PREFIX::matches);
+            Map<Integer, String> inheritedPrefixes = g.getCachedData().getMetaData(QueryOptions.contextual(contexts)).getPrefixes();
+            int priority = inheritedPrefixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10);
+            g.data().add(PrefixNode.builder(value, priority).context(contexts).build());
+        });
     }
 
     @Override
     public void setGroupSuffix(String group, String value){
-        if (value == null) {
-            clearGroupMeta(group, "suffix");
-            return;
-        }
-        value = value.replaceAll("\"", "");
-        String command = String.format("lp group %s meta setsuffix \"%s\" %s", group, value, getServerContext());
-        commands.performCommand(console, command);
+        if (lp.getGroupManager().getGroup(group) == null) return;
+        if (value == null) lp.getGroupManager().modifyGroup(group, g-> g.data().clear(contexts, NodeType.SUFFIX::matches));
+        else lp.getGroupManager().modifyGroup(group, g->{
+            g.data().clear(contexts, NodeType.SUFFIX::matches);
+            Map<Integer, String> inheritedSuffixes = g.getCachedData().getMetaData(QueryOptions.contextual(contexts)).getSuffixes();
+            int priority = inheritedSuffixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10);
+            g.data().add(SuffixNode.builder(value, priority).context(contexts).build());
+        });
     }
 
     @Override
@@ -93,49 +104,51 @@ public class PermissionHelper implements Permissions {
 
     @Override
     public void clearUserMeta(UUID user, String node) {
-        String command = String.format("lp user %s meta clear %s %s", user.toString(), node, getServerContext());
-        commands.performCommand(console, command);
+        lp.getUserManager().modifyUser(user, u-> u.data().clear(contexts, n->isMatchingMeta(n, node)));
     }
 
     @Override
     public void setUserMeta(UUID user, String node, String value){
-        if (value == null) {
-            clearUserMeta(user, node);
-            return;
-        }
-        value = value.replaceAll("\"", "");
-        String command = String.format("lp user %s meta set %s \"%s\" %s", user.toString(), node, value, getServerContext());
-        commands.performCommand(console, command);
+        if (value == null) clearUserMeta(user, node);
+        else lp.getUserManager().modifyUser(user, u->{
+            u.data().clear(contexts, n->isMatchingMeta(n, node));
+            u.data().add(MetaNode.builder(node, value).context(contexts).build());
+        });
+    }
+
+    @Override
+    public void setUserNick(UUID user, String value){
+        setUserMeta(user, Permissions.NICKNAME, value);
     }
 
     @Override
     public void setUserPrefix(UUID user, String value){
-        if (value == null) {
-            clearUserMeta(user, "prefix");
-            return;
-        }
-        value = value.replaceAll("\"", "");
-        String command = String.format("lp user %s meta setprefix \"%s\" %s", user.toString(), value, getServerContext());
-        commands.performCommand(console, command);
+        if (value == null) lp.getUserManager().modifyUser(user, u-> u.data().clear(contexts, NodeType.PREFIX::matches));
+        else lp.getUserManager().modifyUser(user, u->{
+            u.data().clear(contexts, NodeType.PREFIX::matches);
+            Map<Integer, String> inheritedPrefixes = u.getCachedData().getMetaData(QueryOptions.contextual(contexts)).getPrefixes();
+            int priority = inheritedPrefixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10);
+            u.data().add(PrefixNode.builder(value, priority).context(contexts).build());
+        });
     }
 
     @Override
     public void setUserSuffix(UUID user, String value){
-        if (value == null) {
-            clearUserMeta(user, "suffix");
-            return;
-        }
-        value = value.replaceAll("\"", "");
-        String command = String.format("lp user %s meta setsuffix \"%s\" %s", user.toString(), value, getServerContext());
-        commands.performCommand(console, command);
+        if (value == null) lp.getUserManager().modifyUser(user, u-> u.data().clear(contexts, NodeType.SUFFIX::matches));
+        else lp.getUserManager().modifyUser(user, u->{
+            u.data().clear(contexts, NodeType.SUFFIX::matches);
+            Map<Integer, String> inheritedSuffixes = u.getCachedData().getMetaData(QueryOptions.contextual(contexts)).getSuffixes();
+            int priority = inheritedSuffixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10);
+            u.data().add(SuffixNode.builder(value, priority).context(contexts).build());
+        });
     }
 
     @Override
-    public <T> T getMetaOrDefault(UUID uuid, String key, Function<String, T> mapper, T def){
+    public <T> T getUserMetaOrDefault(UUID uuid, String key, Function<String, T> mapper, T def){
         try {
             User user = lp.getUserManager().getUser(uuid);
             if (user == null) return def;
-            String val = getMeta(user, key);
+            String val = getUserMeta(user, key);
             if (val == null) return def;
             else return mapper.apply(val);
         } catch (Exception e){
@@ -150,6 +163,11 @@ public class PermissionHelper implements Permissions {
         return p.getCachedData()
                 .getMetaData()
                 .getMetaValue(node);
+    }
+
+    @Override
+    public String getUserNick(UUID uuid){
+        return getUserMeta(uuid, Permissions.NICKNAME);
     }
 
     @Override
@@ -204,7 +222,7 @@ public class PermissionHelper implements Permissions {
 
     @Override
     public void setUserPermission(UUID user, String node, boolean value){
-        String command = String.format("lp user %s permission set %s %b %s", user.toString(), node, value, getServerContext());
+        String command = String.format("lp user %s permission set %s %b %s", getUserInput(user), node, value, getServerContext());
         commands.performCommand(console, command);
     }
 
@@ -213,16 +231,9 @@ public class PermissionHelper implements Permissions {
         return hasPermission(new GameProfile(user, ""), node, null);
     }
 
-    public String getMeta(User user, String key){
-        if (user == null) return null;
-        else return user.getCachedData()
-                .getMetaData()
-                .getMetaValue(key);
-    }
-
-    public <T> T getMetaOrDefault(User user, String key, Function<String, T> mapper, T def){
+    public <T> T getUserMetaOrDefault(User user, String key, Function<String, T> mapper, T def){
         try {
-            String val = getMeta(user, key);
+            String val = getUserMeta(user, key);
             if (val == null) return def;
             else return mapper.apply(val);
         } catch (Exception e){
@@ -230,18 +241,25 @@ public class PermissionHelper implements Permissions {
         }
     }
 
+    public String getUserMeta(User user, String key){
+        if (user == null) return null;
+        else return user.getCachedData()
+                .getMetaData()
+                .getMetaValue(key);
+    }
+
+    public String getUserSuffix(User user) {
+        if (user == null) return null;
+        else return user.getCachedData()
+                .getMetaData()
+                .getSuffix();
+    }
+
     public String getUserPrefix(User user){
         if (user == null) return null;
         else return user.getCachedData()
                 .getMetaData()
                 .getPrefix();
-    }
-
-    public String getUserSuffix(User user){
-        if (user == null) return null;
-        else return user.getCachedData()
-                .getMetaData()
-                .getSuffix();
     }
 
     public boolean hasPermission(@NonNull GameProfile profile, @NonNull String node, @Nullable IContext context) {
@@ -256,7 +274,18 @@ public class PermissionHelper implements Permissions {
     public void onServerStarting(FMLServerStartingEvent event) {
         this.lp = LuckPermsProvider.get();
         this.contexts = lp.getContextManager().getStaticContext();
-        this.console = event.getServer().createCommandSourceStack();
+        this.console = event.getServer().createCommandSourceStack()
+                .withPermission(4);
         this.commands = event.getServer().getCommands();
+    }
+
+    private String getUserInput(UUID playerId){
+        ForgePlayer p = ForgeCommons.getInstance().getPlayers().getOnlinePlayer(playerId);
+        return p == null? playerId.toString() : p.getUserName();
+    }
+
+    private boolean isMatchingMeta(Node node, String key) {
+        if (!NodeType.META.matches(node)) return false;
+        else return key.equals(NodeType.META.cast(node).getMetaKey());
     }
 }

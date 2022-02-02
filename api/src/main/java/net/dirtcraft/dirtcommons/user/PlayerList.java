@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public interface PlayerList<T extends CommonsPlayer<?, ?>> {
+public interface PlayerList<T extends CommonsPlayer<?, ?, ?>, U> {
     List<T> getOnlinePlayers();
     @Nullable T getOnlinePlayer(UUID uuid);
     @Nullable T getOnlinePlayer(String name);
@@ -21,4 +21,8 @@ public interface PlayerList<T extends CommonsPlayer<?, ?>> {
         for (T t : getOnlinePlayers()) if (predicate.test(t)) list.add(t);
         return list;
     }
+
+    void broadcastChatMessage(U message, UUID sender);
+    void broadcastInfoMessage(U message, UUID sender);
+    void broadcastSysMessage(U message, UUID sender);
 }

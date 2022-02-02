@@ -1,7 +1,7 @@
 package net.dirtcraft.dirtcommons.user;
 
 import net.dirtcraft.dirtcommons.DirtCommons;
-import net.dirtcraft.dirtcommons.permission.Permissible;
+import net.dirtcraft.dirtcommons.permission.CommandSource;
 import net.dirtcraft.dirtcommons.permission.Permissions;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Function;
 
-public interface CommonsPlayer<T extends S, S> extends Permissible, Vanishable<S>, TeamPlayer {
+public interface CommonsPlayer<T extends S, S, U> extends CommandSource<U>, Vanishable<S>, TeamPlayer {
 
     T getServerEntity();
 
@@ -44,26 +44,21 @@ public interface CommonsPlayer<T extends S, S> extends Permissible, Vanishable<S
     }
 
     default String getNickname() {
-        return getMeta(Permissions.PLAYER_NICKNAME);
-    }
-
-    default void setNickname(String nick) {
-        DirtCommons.getInstance()
-                .getPermissionHelper()
-                .setUserNick(getUserId(), nick);
+        return getMeta(Permissions.NICKNAME);
     }
 
     default String getUserRankIndicator(){
         return getMeta(Permissions.RANK_INDICATOR);
     }
 
+    //todo cache this, use node watcher to update.
     default boolean rankIndicatorRedundant(){
         User user = getUser();
         Collection<Group> groups = user.getInheritedGroups(user.getQueryOptions());
         String prefix = getUserPrefix();
         String indicator = getUserRankIndicator();
         Permissions helper = DirtCommons.getInstance().getPermissionHelper();
-        if (prefix == null) return true;
+        if (indicator == null || prefix == null) return true;
         for (Group group : groups) {
             if (!prefix.equals(group.getCachedData().getMetaData().getPrefix())) continue;
             if (indicator.equals(helper.getGroupIndicator(group.getName()))) return true;
@@ -71,7 +66,7 @@ public interface CommonsPlayer<T extends S, S> extends Permissible, Vanishable<S
         return false;
     }
 
-    default <U> U getMetaOrDefault(String key, Function<String, U> mapper, U def){
+    default <V> V getMetaOrDefault(String key, Function<String, V> mapper, V def){
         try {
             String val = getMeta(key);
             if (val == null) return def;

@@ -5,8 +5,12 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public interface Permissions {
+    String NICKNAME = "commons.nickname";
     String RANK_INDICATOR = "commons.indicator";
-    String PLAYER_NICKNAME = "commons.nickname";
+    String COLORS_USE = "commons.formatting.colors";
+    String COLORS_FORMAT = "commons.formatting.style";
+    String COLORS_HEX = "commons.formatting.advanced";
+    String COLORS_STAFF = "commons.formatting.staff";
 
     boolean initialized();
 
@@ -25,7 +29,7 @@ public interface Permissions {
     String getUserSuffix(UUID user);
     String getUserGroup(UUID user);
     Collection<String> getUserGroups(UUID user);
-    <T> T getMetaOrDefault(UUID uuid, String key, Function<String, T> mapper, T def);
+    <T> T getUserMetaOrDefault(UUID uuid, String key, Function<String, T> mapper, T def);
 
     String getGroupMeta(String group, String node);
     String getGroupPrefix(String group);
@@ -37,13 +41,9 @@ public interface Permissions {
     void setGroupPrefix(String group, String value);
     void setGroupSuffix(String group, String value);
 
-    default String getUserNick(UUID uuid) {
-        return getUserMeta(uuid, PLAYER_NICKNAME);
-    }
+    String getUserNick(UUID uuid);
 
-    default void setUserNick(UUID uuid, String nick) {
-        setUserMeta(uuid, PLAYER_NICKNAME, nick);
-    }
+    void setUserNick(UUID uuid, String nick);
 
 
     default String getUserIndicator(UUID user) {

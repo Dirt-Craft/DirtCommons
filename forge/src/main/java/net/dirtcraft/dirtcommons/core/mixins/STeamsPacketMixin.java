@@ -32,7 +32,7 @@ public class STeamsPacketMixin implements CustomTeamPacket {
     }
 
     @Override
-    public STeamsPacket setData(CommonsPlayer<?,?> player) {
+    public STeamsPacket setData(CommonsPlayer<?,?,?> player) {
         return setData(player.getColor(), player.getUserName());
     }
 }

@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ForgePlayer {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ForgePlayer, ForgePlayer.ChatManager {
     private ServerPlayerEntityMixin(World a, BlockPos b, float c, GameProfile d) {super(a,b,c,d); throw new Error("the fuck you doing?");}
     @Shadow public ServerPlayNetHandler connection;
     @Shadow public abstract void take(Entity p_71001_1_, int p_71001_2_);
@@ -46,19 +46,15 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     @Unique private short vanish$viewLevel;
     @Unique private short vanish$level;
     @Unique private User permission$user;
-    @Unique private ITextComponent chat$displayChat;
-    @Unique private ITextComponent chat$displayTab;
-    @Unique private ITextComponent chat$displayComp;
+    @Unique private ITextComponent chat$carat;
+    @Unique private ITextComponent chat$prefix;
+    @Unique private ITextComponent chat$indicator;
     @Unique private ITextComponent chat$display;
+    @Unique private ITextComponent chat$suffix;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void constructor(MinecraftServer p_i45285_1_, ServerWorld p_i45285_2_, GameProfile p_i45285_3_, PlayerInteractionManager p_i45285_4_, CallbackInfo ci){
         vanish$tracking = new HashSet<>();
-    }
-
-    @Inject(method = "getTabListDisplayName", at = @At("HEAD"), cancellable = true)
-    public void getTabListDisplayName(CallbackInfoReturnable<ITextComponent> cir) {
-        cir.setReturnValue(getUserTabListDisplayName());
     }
 
     @Inject(method = "restoreFrom", at = @At("HEAD"))
@@ -70,9 +66,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
         this.vanish$viewLevel = sep.vanish$viewLevel;
         this.vanish$level = sep.vanish$level;
         this.permission$user = sep.permission$user;
-        this.chat$displayChat = sep.chat$displayChat;
-        this.chat$displayTab = sep.chat$displayTab;
+        this.chat$carat = sep.chat$carat;
+        this.chat$prefix = sep.chat$prefix;
+        this.chat$indicator = sep.chat$indicator;
         this.chat$display = sep.chat$display;
+        this.chat$suffix = sep.chat$suffix;
     }
 
     @Override
@@ -180,32 +178,53 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     }
 
     @Override
-    public void setUserChatDisplayName(ITextComponent name) {
-        chat$displayChat = name;
+    public ITextComponent getUserDisplayCarat() {
+        return chat$carat;
     }
 
     @Override
-    public void setUserTabListDisplayName(ITextComponent name) {
-        chat$displayTab = name;
+    public ITextComponent getUserDisplayPrefix() {
+        return chat$prefix;
     }
 
     @Override
-    public void setUserCompactDisplayName(ITextComponent name) {
-        chat$displayComp = name;
+    public ITextComponent getUserDisplayIndicator() {
+        return chat$indicator;
     }
 
     @Override
-    public ITextComponent getUserChatDisplayName() {
-        return chat$displayChat == null? this.getDisplayName() : chat$displayChat;
+    public ITextComponent getUserDisplayName() {
+        return chat$display;
     }
 
     @Override
-    public ITextComponent getUserTabListDisplayName() {
-        return chat$displayTab == null? this.getDisplayName() : chat$displayTab;
+    public ITextComponent getUserDisplaySuffix() {
+        return chat$suffix;
+    }
+
+
+    @Override
+    public void setUserDisplayCarat(ITextComponent chat$carat) {
+        this.chat$carat = chat$carat;
     }
 
     @Override
-    public ITextComponent getUserCompactDisplayName() {
-        return chat$displayComp == null? this.getDisplayName() : chat$displayComp;
+    public void setUserDisplayPrefix(ITextComponent chat$prefix) {
+        this.chat$prefix = chat$prefix;
+    }
+
+    @Override
+    public void setUserDisplayIndicator(ITextComponent chat$indicator) {
+        this.chat$indicator = chat$indicator;
+    }
+
+    @Override
+    public void setUserDisplayName(ITextComponent chat$display) {
+        this.chat$display = chat$display;
+    }
+
+    @Override
+    public void setUserDisplaySuffix(ITextComponent chat$suffix) {
+        this.chat$suffix = chat$suffix;
     }
 }

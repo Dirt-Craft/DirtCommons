@@ -9,6 +9,8 @@ import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.storage.PlayerData;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -24,9 +26,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.*;
 
 @Mixin(PlayerList.class)
-public abstract class PlayerListMixin implements net.dirtcraft.dirtcommons.user.PlayerList<ForgePlayer> {
+public abstract class PlayerListMixin implements net.dirtcraft.dirtcommons.user.PlayerList<ForgePlayer, ITextComponent> {
     @Shadow public abstract List<ServerPlayerEntity> getPlayers();
     @Shadow @javax.annotation.Nullable public abstract ServerPlayerEntity getPlayer(UUID p_177451_1_);
+
+    @Shadow public abstract void broadcastMessage(ITextComponent p_232641_1_, ChatType p_232641_2_, UUID p_232641_3_);
+
     @Unique private final Set<ForgePlayer> customTeams = new HashSet<>();
     @Unique private final Map<String, ForgePlayer> nameMap = new HashMap<>();
 
@@ -89,5 +94,20 @@ public abstract class PlayerListMixin implements net.dirtcraft.dirtcommons.user.
     public void removePseudoTeam(ForgePlayer player) {
         customTeams.remove(player);
         update(player);
+    }
+
+    @Override
+    public void broadcastChatMessage(ITextComponent message, UUID sender) {
+        broadcastMessage(message, ChatType.CHAT, sender);
+    }
+
+    @Override
+    public void broadcastInfoMessage(ITextComponent message, UUID sender) {
+        broadcastMessage(message, ChatType.GAME_INFO, sender);
+    }
+
+    @Override
+    public void broadcastSysMessage(ITextComponent message, UUID sender) {
+        broadcastMessage(message, ChatType.SYSTEM, sender);
     }
 }

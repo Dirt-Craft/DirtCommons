@@ -18,6 +18,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -28,7 +29,7 @@ import java.awt.*;
 import java.nio.file.Path;
 
 @Mod(ForgeCommons.MOD_ID)
-public class ForgeCommons extends Commons<ForgePlayer> {
+public class ForgeCommons extends Commons<ForgePlayer, ITextComponent> {
     public static final String MOD_ID = "dirtcommons";
     private static ForgeCommons INSTANCE;
     private PermissionHelper permissionHelper = new PermissionHelper();
@@ -62,9 +63,9 @@ public class ForgeCommons extends Commons<ForgePlayer> {
     }
 
     @Override
-    public PlayerList<ForgePlayer> getPlayers() {
+    public PlayerList<ForgePlayer, ITextComponent> getPlayers() {
         //noinspection unchecked
-        return (PlayerList<ForgePlayer>) ServerLifecycleHooks.getCurrentServer().getPlayerList();
+        return (PlayerList<ForgePlayer, ITextComponent>) ServerLifecycleHooks.getCurrentServer().getPlayerList();
     }
 
     protected boolean hasPermission(@NonNull GameProfile profile, @NonNull String node) {

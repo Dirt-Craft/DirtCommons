@@ -3,6 +3,7 @@ package net.dirtcraft.dirtcommons.util;
 import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
 import net.dirtcraft.dirtcommons.user.PlayerList;
 import net.luckperms.api.LuckPermsProvider;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
@@ -22,9 +23,9 @@ public class ForgeNodeMutateListener extends AbstractNodeMutateListener<ForgePla
     }
 
     @Override
-    protected PlayerList<ForgePlayer> getPlayerList() {
+    protected PlayerList<ForgePlayer, ITextComponent> getPlayerList() {
         //noinspection unchecked
-        return (PlayerList<ForgePlayer>) ServerLifecycleHooks.getCurrentServer().getPlayerList();
+        return (PlayerList<ForgePlayer, ITextComponent>) ServerLifecycleHooks.getCurrentServer().getPlayerList();
     }
 
     @SubscribeEvent

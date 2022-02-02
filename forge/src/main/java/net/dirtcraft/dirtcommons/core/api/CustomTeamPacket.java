@@ -16,6 +16,6 @@ public interface CustomTeamPacket {
 
     STeamsPacket setData(LegacyColors color, String... player);
 
-    STeamsPacket setData(CommonsPlayer<?,?> player);
+    STeamsPacket setData(CommonsPlayer<?,?,?> player);
 
 }

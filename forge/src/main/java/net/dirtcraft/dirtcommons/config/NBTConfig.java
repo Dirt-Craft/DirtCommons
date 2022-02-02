@@ -64,7 +64,7 @@ public abstract class NBTConfig<T> {
         if (settings == null) return;
         File data = getUserData(playerId);
         try {
-            data.mkdirs();
+            folder.toFile().mkdirs();
             CompoundNBT nbt = new CompoundNBT();
             save(nbt, settings);
             CompressedStreamTools.write(nbt, data);
