@@ -3,7 +3,6 @@ package net.dirtcraft.dirtcommons.util;
 import net.dirtcraft.dirtcommons.user.CommonsPlayer;
 import net.dirtcraft.dirtcommons.user.PlayerList;
 import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.event.EventSubscription;
 import net.luckperms.api.event.node.NodeAddEvent;
 import net.luckperms.api.event.node.NodeClearEvent;
@@ -12,25 +11,42 @@ import net.luckperms.api.model.PermissionHolder;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
 
 import java.util.*;
 import java.util.function.Consumer;
 
-public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>, U extends AbstractNodeMutateListener<T, U>> {
+public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?, ?>, U extends AbstractNodeMutateListener<T, U>> {
     private LuckPerms lp;
-    private Consumer<T> onUpdate;
-    private PlayerList<T> pList;
-    private List<String> nodes;
+    private final Consumer<T> onUpdate;
+    private final Set<String> permissions;
+    private final Set<String> metaNodes;
+    private PlayerList<T, ?> pList;
+    private List<EventSubscription<?>> subs;
+    private boolean prefix;
+    private boolean suffix;
 
     public AbstractNodeMutateListener(Consumer<T> onUpdate) {
         this.onUpdate = onUpdate;
-        nodes = new ArrayList<>();
-        nodes.add("group");
+        metaNodes = new HashSet<>();
+        permissions = new HashSet<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    public U addPrefix(){
+        this.prefix = true;
+        return (U) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U addSuffix(){
+        this.suffix = true;
+        return (U) this;
     }
 
     @SuppressWarnings("unchecked")
     public U addTrackedMetaNode(String node) {
-        nodes.add("meta." + (node.replaceAll("\\.", "\\\\.")));
+        metaNodes.add(node);
         return (U) this;
     }
 
@@ -48,7 +64,7 @@ public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>, 
 
     @SuppressWarnings("unchecked")
     public U addTrackedNode(String node) {
-        nodes.add(node);
+        permissions.add(node);
         return (U) this;
     }
 
@@ -64,10 +80,18 @@ public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>, 
         return (U) this;
     }
 
-    private List<EventSubscription<?>> subs;
+
+    private boolean isWatched(Node node) {
+        if (NodeType.INHERITANCE.matches(node)) return true;
+        else if (NodeType.PREFIX.matches(node)) return prefix;
+        else if (NodeType.SUFFIX.matches(node)) return suffix;
+        else if (NodeType.META.matches(node)) return metaNodes.contains(NodeType.META.cast(node).getMetaKey());
+        else return permissions.contains(node.getKey());
+    }
+
 
     public void onMutate(Node node, PermissionHolder permissionHolder) {
-        if (!matches(node.getKey())) return;
+        if (!isWatched(node)) return;
         if (permissionHolder.getIdentifier().getType().equals(PermissionHolder.Identifier.GROUP_TYPE)) {
             Group group = lp.getGroupManager().getGroup(permissionHolder.getIdentifier().getName());
             if (group == null) {
@@ -115,10 +139,5 @@ public abstract class AbstractNodeMutateListener<T extends CommonsPlayer<?, ?>, 
         return players;
     }
 
-    private boolean matches(String node) {
-        for (String key : nodes) if (node.startsWith(key)) return true;
-        return false;
-    }
-
-    protected abstract PlayerList<T> getPlayerList();
+    protected abstract PlayerList<T, ?> getPlayerList();
 }

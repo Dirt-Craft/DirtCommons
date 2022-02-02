@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class Commons<T extends CommonsPlayer<?, ?>> extends DirtCommons<T> {
+public abstract class Commons<T extends CommonsPlayer<?, ?, U>, U> extends DirtCommons<T, U> {
     private BiConsumer<Type, TypeSerializer<?>> register;
     public Commons() {
         DirtCommons.INSTANCE = this;
