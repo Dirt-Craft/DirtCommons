@@ -142,16 +142,22 @@ public class TextUtil {
         return FORMATTING_REGEX.matcher(text).replaceAll("");
     }
 
-    private static char charAt(String in, int i, char outOfBounds) {
+    public static char charAt(String in, int i, char outOfBounds) {
         return i < in.length() ? in.charAt(i) : outOfBounds;
     }
-    
+
+    public static Color parseRgb(String hex) {
+        try {
+            int rgb = Integer.decode("0x" + hex);
+            return Color.fromRgb(rgb);
+        } catch (NumberFormatException ignored){}
+        return Color.fromRgb(0xFFFFFFFF);
+    }
+
     private static Color parseRgb(int i, String in) {
         try {
-            String code = in.substring(i, i + 6);
-            int rgb = Integer.decode("0x" + code);
-            return Color.fromRgb(rgb);
-        } catch (NumberFormatException | IndexOutOfBoundsException ignored){}
+            return parseRgb(in.substring(i, i + 6));
+        } catch (IndexOutOfBoundsException ignored){}
         return Color.fromRgb(0xFFFFFFFF);
     }
 

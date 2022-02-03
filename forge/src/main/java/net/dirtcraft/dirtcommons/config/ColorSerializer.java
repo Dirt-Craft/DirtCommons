@@ -1,5 +1,6 @@
 package net.dirtcraft.dirtcommons.config;
 
+import net.dirtcraft.dirtcommons.text.TextUtil;
 import net.minecraft.util.text.Color;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -12,11 +13,11 @@ public class ColorSerializer implements TypeSerializer<Color> {
 
     @Override
     public Color deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        return Color.parseColor(node.getString());
+        return TextUtil.parseRgb(node.getString());
     }
 
     @Override
     public void serialize(Type type, @Nullable Color obj, ConfigurationNode node) throws SerializationException {
-        node.set(String.class, obj.serialize());
+        node.set(String.class, String.format("%06X", obj.value));
     }
 }
