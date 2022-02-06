@@ -123,22 +123,32 @@ public class PermissionHelper implements Permissions {
 
     @Override
     public void setUserPrefix(UUID user, String value){
+        this.setUserPrefix(user, 0, value);
+    }
+
+    @Override
+    public void setUserSuffix(UUID user, String value){
+        this.setUserSuffix(user, 0, value);
+    }
+
+    @Override
+    public void setUserPrefix(UUID user, int minPriority, String value){
         if (value == null) lp.getUserManager().modifyUser(user, u-> u.data().clear(contexts, NodeType.PREFIX::matches));
         else lp.getUserManager().modifyUser(user, u->{
             u.data().clear(contexts, NodeType.PREFIX::matches);
             Map<Integer, String> inheritedPrefixes = u.getCachedData().getMetaData(QueryOptions.contextual(contexts)).getPrefixes();
-            int priority = inheritedPrefixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10);
+            int priority = Math.max(inheritedPrefixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10), minPriority);
             u.data().add(PrefixNode.builder(value, priority).context(contexts).build());
         });
     }
 
     @Override
-    public void setUserSuffix(UUID user, String value){
+    public void setUserSuffix(UUID user, int minPriority, String value){
         if (value == null) lp.getUserManager().modifyUser(user, u-> u.data().clear(contexts, NodeType.SUFFIX::matches));
         else lp.getUserManager().modifyUser(user, u->{
             u.data().clear(contexts, NodeType.SUFFIX::matches);
             Map<Integer, String> inheritedSuffixes = u.getCachedData().getMetaData(QueryOptions.contextual(contexts)).getSuffixes();
-            int priority = inheritedSuffixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10);
+            int priority = Math.max(inheritedSuffixes.keySet().stream().mapToInt(i -> i + 10).max().orElse(10), minPriority);
             u.data().add(SuffixNode.builder(value, priority).context(contexts).build());
         });
     }
@@ -218,6 +228,13 @@ public class PermissionHelper implements Permissions {
         Group g = lp.getGroupManager().getGroup(group);
         if (g == null) return null;
         else return g.getCachedData().getMetaData().getSuffix();
+    }
+
+    @Override
+    public int getGroupWeight(String group) {
+        Group g = lp.getGroupManager().getGroup(group);
+        if (g == null) return -1;
+        else return g.getWeight().orElse(0);
     }
 
     @Override

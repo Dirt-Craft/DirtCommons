@@ -5,12 +5,12 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public interface Permissions {
-    String NICKNAME = "commons.nickname";
-    String RANK_INDICATOR = "commons.indicator";
-    String COLORS_USE = "commons.formatting.colors";
-    String COLORS_FORMAT = "commons.formatting.style";
-    String COLORS_HEX = "commons.formatting.advanced";
-    String COLORS_STAFF = "commons.formatting.staff";
+    String NICKNAME = "commons.nickname"; //meta
+    String RANK_INDICATOR = "commons.indicator"; //meta
+    String COLORS_USE = "commons.formatting.colors"; //node
+    String COLORS_FORMAT = "commons.formatting.style"; //node
+    String COLORS_HEX = "commons.formatting.advanced"; //node
+    String COLORS_STAFF = "commons.formatting.staff"; //node
 
     boolean initialized();
 
@@ -21,7 +21,9 @@ public interface Permissions {
     void setUserPermission(UUID user, String node, boolean value);
     void clearUserMeta(UUID user, String node);
     void setUserMeta(UUID user, String node, String value);
+    void setUserPrefix(UUID user, int minPriority, String value);
     void setUserPrefix(UUID user, String value);
+    void setUserSuffix(UUID user, int minPriority, String value);
     void setUserSuffix(UUID user, String value);
 
     String getUserMeta(UUID user, String node);
@@ -38,6 +40,7 @@ public interface Permissions {
     void setGroupPermission(String group, String node, boolean value);
     void clearGroupMeta(String group, String node);
     void setGroupMeta(String group, String node, String value);
+    int getGroupWeight(String group);
     void setGroupPrefix(String group, String value);
     void setGroupSuffix(String group, String value);
 

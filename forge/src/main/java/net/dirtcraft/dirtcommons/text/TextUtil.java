@@ -10,11 +10,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextUtil {
-    public static final char FORMAT_CHAR = '&';
-    public static final Pattern FORMATTING_REGEX = Pattern.compile(FORMAT_CHAR + "([k-oi0-9a-f]|[#%][0-9a-f]{6}|\\$\\d)");
+    public static final Pattern FORMATTING_REGEX = Pattern.compile("(?i)[&§]([k-oi0-9a-f]|[#%x][0-9a-f]{6}|\\$\\d|x([&§][0-9a-f]){6})");
+    private static final Pattern SPIGOT_GRADIENTS = Pattern.compile("(?i)(?<start>&%[0-9a-f]{6})(?<format>(&[k-o0-9a-f])+?)(?<text>.+?)(?<end>&%[0-9a-f]{6})");
     private static final Map<Character, net.minecraft.util.text.TextFormatting> FORMATTING_MAP = new HashMap<>();
     static {
         for (net.minecraft.util.text.TextFormatting f : net.minecraft.util.text.TextFormatting.values()) {
@@ -23,28 +24,25 @@ public class TextUtil {
     }
 
     public static ITextComponent format(String in, ITextComponent... args){
-        return format(null, in, FORMAT_CHAR, args);
-    }
-
-    public static ITextComponent format(String in, char formattingCode, ITextComponent... args) {
-        return format(null, in, formattingCode, args);
+        return format(null, in, true, args);
     }
 
 
     public static ITextComponent format(ForgePlayer player, String in, ITextComponent... args) {
-        return format(player, in, FORMAT_CHAR, args);
+        return format(player, in, false, args);
     }
 
-    public static ITextComponent format(@Nullable ForgePlayer src, String in, char formattingCode, ITextComponent... args) {
+
+    public static ITextComponent format(@Nullable ForgePlayer src, String in, boolean colorized, ITextComponent... args) {
         if (in == null || in.isEmpty()) return null;
         List<IFormattableTextComponent> parts = null;
         IFormattableTextComponent base = new StringTextComponent("");
         StringBuilder builder = new StringBuilder();
         Style style = Style.EMPTY;
-        boolean colors = src == null || src.hasPermission(Permissions.COLORS_USE);
-        boolean format = src == null || src.hasPermission(Permissions.COLORS_FORMAT);
-        boolean hex = src == null    || src.hasPermission(Permissions.COLORS_HEX);
-        boolean newline = src == null|| src.hasPermission(Permissions.COLORS_STAFF);
+        boolean colors =  colorized || src == null || src.hasPermission(Permissions.COLORS_USE);
+        boolean format =  colorized || src == null || src.hasPermission(Permissions.COLORS_FORMAT);
+        boolean hex =     colorized || src == null || src.hasPermission(Permissions.COLORS_HEX);
+        boolean newline = colorized || src == null || src.hasPermission(Permissions.COLORS_STAFF);
         boolean applyFormatting = false;
         boolean gradientMode = false;
         Color gradient = null;
@@ -52,7 +50,7 @@ public class TextUtil {
         for (int i = 0; i < in.length(); i++) {
             char c = in.charAt(i);
             char next = charAt(in, i + 1, '.');
-            if (c == formattingCode) {
+            if (c == '&' || c == '§') {
                 if (next == c) {
                     applyFormatting = true;
                     builder.append(c);
@@ -79,6 +77,10 @@ public class TextUtil {
                         if (hex) style = style.withColor(parseRgb(i + 2, in));
                         i += 7;
                         break;
+                    } case 'x': {
+                        style.withColor(parseSpigotRgb(i + 2, in));
+                        i += 13;
+                        break;
                     } case '%': {
                         Color color = parseRgb(i + 2, in);
                         i += 7;
@@ -92,8 +94,7 @@ public class TextUtil {
                         }
                         gradientMode = !gradientMode;
                         break;
-                    } case '$': {
-                        i+=2;
+                    } case '$': {                        i+=2;
                         boolean prefixSpace = false;
                         boolean suffixSpace = false;
                         char element = charAt(in, i, '-');
@@ -107,8 +108,19 @@ public class TextUtil {
                             element = charAt(in, i, '-');
                             suffixSpace = true;
                         }
+                        if (element == ':') {
+                            int st = ++i;
+                            while (charAt(in, i, ':') != ':') i+=1;
+                            String s = in.substring(st, i);
+                            String meta = src == null? null : src.getMeta(s);
+                            ITextComponent comp = format(meta);
+                            if (comp != null && prefixSpace) base.append(" ");
+                            if (comp != null) base.append(comp);
+                            if (comp != null && suffixSpace) base.append(" ");
+                            break;
+                        }
                         int index = Character.isDigit(element)? Character.getNumericValue(element): -1;
-                        if (index < args.length && args[index] != null) {
+                        if (index >= 0 && index < args.length && args[index] != null) {
                             if (prefixSpace) base.append(" ");
                             base.append(args[index]);
                             if (suffixSpace) base.append(" ");
@@ -132,11 +144,36 @@ public class TextUtil {
                 builder.append(c);
             }
         }
-        if (builder.length() == 0) return base;
+        if (parts != null && !parts.isEmpty()) {
+            base.append(parseGradient(gradient, Color.fromRgb(0x00FFFFFF), parts));
+            parts.clear();
+        } else if (builder.length() == 0) return base;
         ITextComponent segment = new StringTextComponent(builder.toString()).withStyle(style);
         base.append(segment);
         return base;
     }
+
+    /*
+    private static int parseArgument(String in, int i, IFormattableTextComponent component, ITextComponent... args) {
+        char ch;
+        boolean ps = false;
+        boolean ss = false;
+        while ((ch = charAt(in, ++i, '§')) != '§') switch (ch) {
+            case '<': ps = true; break;
+            case '>': ss = true; break;
+            default: {
+                if (!Character.isDigit(ch)) break;
+                int index = Character.getNumericValue(ch);
+                ITextComponent element = args[index];
+                if (element != null && ps) component.append(" ");
+                if (element != null) component.append(element);
+                if (element != null && ss) component.append(" ");
+                return i;
+            }
+        }
+        return i;
+    }
+     */
 
     public static String stripFormatting(String text){
         return FORMATTING_REGEX.matcher(text).replaceAll("");
@@ -144,6 +181,68 @@ public class TextUtil {
 
     public static char charAt(String in, int i, char outOfBounds) {
         return i < in.length() ? in.charAt(i) : outOfBounds;
+    }
+
+    public static String formatSpigotFriendlyGradients(String in) {
+        Matcher m = SPIGOT_GRADIENTS.matcher(in);
+        while (m.find()) {
+            Color gradientStart = parseRgb(m.group("start").substring(2));
+            Color gradientEnd = parseRgb(m.group("end").substring(2));
+            String format = m.group("format");
+            if (format == null) format = "";
+            else format = format.replace('&', '§');
+            String text = m.group("text");
+            int[] rgb = parseGradient(gradientStart, gradientEnd, text.length());
+            StringBuilder f = new StringBuilder();
+            for (int i = 0; i < rgb.length; i++) {
+                int color = rgb[i];
+                char ch = text.charAt(i);
+                f.append("§");
+                f.append("x");
+                f.append(String.format("%1$06X", color).replaceAll("(.)", "§$1"));
+                f.append(format);
+                f.append(ch);
+            }
+            in = m.replaceFirst(f.toString());
+            m = SPIGOT_GRADIENTS.matcher(in);
+        }
+
+        return in;
+    }
+
+    private static ITextComponent parseGradient(Color start, Color finish, List<IFormattableTextComponent> parts){
+        StringTextComponent component = new StringTextComponent("");
+        int[] colors = parseGradient(start, finish, parts.size());
+        for (int i = 0; i < parts.size(); i++) {
+            //System.out.printf("%1$06X\n", colors[i]);
+            IFormattableTextComponent t = parts.get(i);
+            Color color = Color.fromRgb(colors[i]);
+            t.withStyle(Style.EMPTY.withColor(color));
+            component.append(t);
+        }
+        return component;
+    }
+
+    private static int[] parseGradient(Color start, Color finish, int chunks){
+        int[] colors = new int[chunks];
+        int r1 = start.value >> 16 & 0x000000FF;
+        int g1 = start.value >> 8  & 0x000000FF;
+        int b1 = start.value       & 0x000000FF;
+
+        int r2 = finish.value >> 16 & 0x000000FF;
+        int g2 = finish.value >> 8  & 0x000000FF;
+        int b2 = finish.value       & 0x000000FF;
+
+        double rStep = r1 == r2? 0D: (double) (r1 - r2) / (chunks -1);
+        double gStep = g1 == g2? 0D: (double) (g1 - g2) / (chunks -1);
+        double bStep = b1 == b2? 0D: (double) (b1 - b2) / (chunks -1);
+        for (int i = 0; i < chunks; i++) {
+            int ca = Math.min(r1 - (int) (i * rStep), 0x000000FF) << 16;
+            int cb = Math.min(g1 - (int) (i * gStep), 0x000000FF) << 8;
+            int cc = Math.min(b1 - (int) (i * bStep), 0x000000FF);
+            colors[i] = (ca | cb | cc);
+        }
+        return colors;
     }
 
     public static Color parseRgb(String hex) {
@@ -161,27 +260,10 @@ public class TextUtil {
         return Color.fromRgb(0xFFFFFFFF);
     }
 
-    private static ITextComponent parseGradient(Color start, Color finish, List<IFormattableTextComponent> parts){
-        StringTextComponent component = new StringTextComponent("");
-        int r1 = start.value >> 16 & 0x000000FF;
-        int g1 = start.value >> 8  & 0x000000FF;
-        int b1 = start.value       & 0x000000FF;
-
-        int r2 = finish.value >> 16 & 0x000000FF;
-        int g2 = finish.value >> 8  & 0x000000FF;
-        int b2 = finish.value       & 0x000000FF;
-
-        double rStep = r1 == r2? 0D: (double) (r1 - r2) / parts.size() - 1;
-        double gStep = g1 == g2? 0D: (double) (g1 - g2) / parts.size() - 1;
-        double bStep = b1 == b2? 0D: (double) (b1 - b2) / parts.size() - 1;
-        for (int i = 0; i < parts.size(); i++) {
-            IFormattableTextComponent t = parts.get(i);
-            int ca = (r1 - (int) (i * rStep) & 0x000000FF) << 16;
-            int cb = (g1 - (int) (i * gStep) & 0x000000FF) << 8;
-            int cc = (b1 - (int) (i * bStep) & 0x000000FF);
-            t.withStyle(Style.EMPTY.withColor(Color.fromRgb(ca | cb | cc)));
-            component.append(t);
-        }
-        return component;
+    private static Color parseSpigotRgb(int i, String in) {
+        try {
+            return parseRgb(in.substring(i, i + 12).replaceAll("§", ""));
+        } catch (IndexOutOfBoundsException ignored){}
+        return Color.fromRgb(0xFFFFFFFF);
     }
 }
