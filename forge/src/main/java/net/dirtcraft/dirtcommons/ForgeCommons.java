@@ -18,6 +18,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
@@ -37,6 +38,10 @@ public class ForgeCommons extends Commons<ForgePlayer, ITextComponent> {
 
     public static Path getConfigPath(String modId) {
         return FMLPaths.GAMEDIR.get().resolve(FMLPaths.CONFIGDIR.get()).resolve(modId);
+    }
+
+    public static Path getWorldConfigPath(String modId) {
+        return FMLPaths.GAMEDIR.get().resolve("world").resolve(modId);
     }
 
     public static ForgeCommons getInstance(){
