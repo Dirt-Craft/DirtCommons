@@ -1,5 +1,6 @@
 package net.dirtcraft.dirtcommons.config;
 
+import net.dirtcraft.dirtcommons.ForgeCommons;
 import net.dirtcraft.dirtcommons.command.CommandElement;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
@@ -11,19 +12,35 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class NBTConfig<T> {
+public abstract class PlayerDataNBT<T> {
     private final Path folder;
     private final Supplier<T> tFactory;
     private final Map<String, CommandElement<T>> commandElements = new LinkedHashMap<>();
     protected final Map<UUID, T> settings = new HashMap<>();
 
-    public NBTConfig(Path folder, Supplier<T> tFactory) {
+    public PlayerDataNBT(Path folder, Supplier<T> tFactory) {
         this.folder = folder;
         this.tFactory = tFactory;
         MinecraftForge.EVENT_BUS.addListener(this::onLogin);
         MinecraftForge.EVENT_BUS.addListener(this::onLogout);
+    }
+
+    public void modifyOffline(UUID player, Consumer<T> runnable) {
+        ForgeCommons commons = ForgeCommons.getInstance();
+        CompletableFuture.runAsync(()->{
+            if (!settings.containsKey(player)) load(player);
+            try {
+                runnable.accept(settings.computeIfAbsent(player, p -> tFactory.get()));
+                save(player);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (commons.getPlayers().getOnlinePlayer(player) == null) settings.remove(player);
+        }, commons.getScheduler().getAsyncExecutor());
     }
 
     public T getOrCreate(PlayerEntity player){
@@ -34,8 +51,16 @@ public abstract class NBTConfig<T> {
         return settings.get(player.getGameProfile().getId());
     }
 
+    public T get(UUID player){
+        return settings.get(player);
+    }
+
     public T getOrDefault(PlayerEntity player, T def){
         return settings.getOrDefault(player.getGameProfile().getId(), def);
+    }
+
+    public T getOrDefault(UUID player, T def){
+        return settings.getOrDefault(player, def);
     }
 
     public void unload(PlayerEntity player){
@@ -45,12 +70,22 @@ public abstract class NBTConfig<T> {
 
     public void load(PlayerEntity player) {
         UUID playerId = player.getGameProfile().getId();
-        File data = getUserData(playerId);
+        this.load(playerId);
+    }
+
+    public void save(PlayerEntity player) {
+        UUID playerId = player.getGameProfile().getId();
+        this.save(playerId);
+
+    }
+
+    public void load(UUID player) {
+        File data = getUserData(player);
         if (data.exists()) {
             try {
                 CompoundNBT nbt = CompressedStreamTools.read(data);
                 T settings = load(nbt);
-                this.settings.put(playerId, settings);
+                this.settings.put(player, settings);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -58,11 +93,10 @@ public abstract class NBTConfig<T> {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void save(PlayerEntity player) {
-        UUID playerId = player.getGameProfile().getId();
-        T settings = this.settings.get(playerId);
+    public void save(UUID player) {
+        T settings = this.settings.get(player);
         if (settings == null) return;
-        File data = getUserData(playerId);
+        File data = getUserData(player);
         try {
             folder.toFile().mkdirs();
             CompoundNBT nbt = new CompoundNBT();
@@ -105,6 +139,4 @@ public abstract class NBTConfig<T> {
     public Collection<String> getCommands() {
         return commandElements.keySet();
     }
-
-
 }
