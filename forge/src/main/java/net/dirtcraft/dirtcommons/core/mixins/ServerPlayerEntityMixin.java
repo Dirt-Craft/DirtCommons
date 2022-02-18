@@ -3,6 +3,7 @@ package net.dirtcraft.dirtcommons.core.mixins;
 import com.google.common.collect.HashBiMap;
 import com.mojang.authlib.GameProfile;
 import net.dirtcraft.dirtcommons.core.api.ForgePlayer;
+import net.dirtcraft.dirtcommons.text.TextUtil;
 import net.dirtcraft.dirtcommons.util.LegacyColors;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -15,11 +16,14 @@ import net.minecraft.network.play.ServerPlayNetHandler;
 import net.minecraft.network.play.server.SEntityMetadataPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerInteractionManager;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import org.lwjgl.system.CallbackI;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -38,6 +42,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     @Shadow public abstract void take(Entity p_71001_1_, int p_71001_2_);
     @Shadow public abstract boolean canHarmPlayer(PlayerEntity p_96122_1_);
     @Shadow public abstract void readAdditionalSaveData(CompoundNBT p_70037_1_);
+
+    @Shadow public abstract void sendMessage(ITextComponent p_241151_1_, ChatType p_241151_2_, UUID p_241151_3_);
+
+    @Shadow public abstract void magicCrit(Entity p_71047_1_);
 
     @Unique private boolean team$glowing;
     @Unique private LegacyColors team$color;
@@ -226,5 +234,35 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Fo
     @Override
     public void setUserDisplaySuffix(ITextComponent chat$suffix) {
         this.chat$suffix = chat$suffix;
+    }
+
+    @Override
+    public void sendChatMessage(ITextComponent message) {
+        sendMessage(message, ChatType.CHAT, Util.NIL_UUID);
+    }
+
+    @Override
+    public void sendFormattedChatMessage(String message) {
+        sendMessage(TextUtil.format(message), ChatType.CHAT, Util.NIL_UUID);
+    }
+
+    @Override
+    public void sendPlainChatMessage(String message) {
+        sendMessage(new StringTextComponent(message), ChatType.CHAT, Util.NIL_UUID);
+    }
+
+    @Override
+    public void sendNotification(ITextComponent message) {
+        sendMessage(message, ChatType.GAME_INFO, Util.NIL_UUID);
+    }
+
+    @Override
+    public void sendFormattedNotification(String message) {
+        sendMessage(TextUtil.format(message), ChatType.GAME_INFO, Util.NIL_UUID);
+    }
+
+    @Override
+    public void sendPlainNotification(String message) {
+        sendMessage(new StringTextComponent(message), ChatType.GAME_INFO, Util.NIL_UUID);
     }
 }

@@ -4,7 +4,6 @@
   "refmap": "${refmap}",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "CommandSourceMixin",
     "PlayerListMixin",
     "SEntityHeadLookPacketMixin",
     "SEntityMetadataPacketMixin",
@@ -17,7 +16,11 @@
     "SPlayerListItemPacketMixin",
     "SSpawnPlayerPacketMixin",
     "STeamsPacketMixin",
-    "TrackedEntityMixin"
+    "TrackedEntityMixin",
+    "permission.CommandBlockMinecartEntityMixin",
+    "permission.CommandBlockTileEntityMixin",
+    "permission.CommandSourceMixin",
+    "permission.MinecraftServerMixin"
   ],
   "client": [
   ],

@@ -84,12 +84,4 @@ public class ForgeCommons extends Commons<ForgePlayer, ITextComponent> {
             return false;
         }
     }
-
-    public boolean checkPerms(CommandSource source, String node) {
-        VerifiableCommandSource s = (VerifiableCommandSource) source;
-        if (s.isCommandBlock() || s.isCommandCart() || s.isConsole()) return true;
-        else if (!s.isPlayer()) return false;
-        ServerPlayerEntity player = s.getPlayer();
-        return hasPermission(player.getGameProfile(), node);
-    }
 }

@@ -21,6 +21,30 @@ public interface CommonsPlayer<T extends S, S, U> extends CommandSource<U>, Vani
 
     UUID getUserId();
 
+
+    void sendTitleTimes(int fadeIn, int stay, int fadeOut);
+    void sendTitle(U title);
+    void sendSubTitle(U title);
+    void clearTitle();
+
+    default void sendTitle(U title, int fadeIn, int stay, int fadeOut) {
+        sendTitleTimes(fadeIn, stay, fadeOut);
+        sendTitle(title);
+    }
+
+    default void sendSubTitle(U title, int fadeIn, int stay, int fadeOut) {
+        sendTitleTimes(fadeIn, stay, fadeOut);
+        sendSubTitle(title);
+    }
+
+
+    default void setTitle(U title, U subtitle, int fadeIn, int stay, int fadeOut) {
+        clearTitle();
+        sendTitleTimes(fadeIn, stay, fadeOut);
+        if (title != null) sendTitle(title);
+        if (subtitle != null) sendSubTitle(subtitle);
+    }
+
     default String getMeta(String key){
         return getUser().getCachedData()
                 .getMetaData()
