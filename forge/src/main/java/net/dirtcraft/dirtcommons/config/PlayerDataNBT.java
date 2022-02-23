@@ -2,6 +2,7 @@ package net.dirtcraft.dirtcommons.config;
 
 import net.dirtcraft.dirtcommons.ForgeCommons;
 import net.dirtcraft.dirtcommons.command.CommandElement;
+import net.minecraft.command.arguments.UUIDArgument;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -29,9 +30,9 @@ public abstract class PlayerDataNBT<T> {
         MinecraftForge.EVENT_BUS.addListener(this::onLogout);
     }
 
-    public void modifyOffline(UUID player, Consumer<T> runnable) {
+    public CompletableFuture<Void> modifyOffline(UUID player, Consumer<T> runnable) {
         ForgeCommons commons = ForgeCommons.getInstance();
-        CompletableFuture.runAsync(()->{
+        return CompletableFuture.runAsync(()->{
             if (!settings.containsKey(player)) load(player);
             try {
                 runnable.accept(settings.computeIfAbsent(player, p -> tFactory.get()));
@@ -45,6 +46,10 @@ public abstract class PlayerDataNBT<T> {
 
     public T getOrCreate(PlayerEntity player){
         return settings.computeIfAbsent(player.getGameProfile().getId(), p->tFactory.get());
+    }
+
+    public T getOrCreate(UUID player){
+        return settings.computeIfAbsent(player, p->tFactory.get());
     }
 
     public T get(PlayerEntity player){

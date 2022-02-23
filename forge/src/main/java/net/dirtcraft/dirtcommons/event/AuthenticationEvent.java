@@ -15,8 +15,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class AuthenticationEvent extends Event {
-    private final MinecraftServer server;
-    private final GameProfile gameProfile;
+    public final MinecraftServer server;
+    public final GameProfile gameProfile;
     private ITextComponent cancelReason;
     private List<CompletableFuture<?>> tasks;
     private ThreadManager scheduler = DirtCommons.getInstance().getScheduler();

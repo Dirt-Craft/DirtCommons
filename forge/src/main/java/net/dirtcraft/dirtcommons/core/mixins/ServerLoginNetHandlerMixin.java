@@ -2,6 +2,7 @@ package net.dirtcraft.dirtcommons.core.mixins;
 
 import com.mojang.authlib.GameProfile;
 import net.dirtcraft.dirtcommons.event.AuthenticationEvent;
+import net.dirtcraft.dirtcommons.event.DisconnectEvent;
 import net.minecraft.network.login.ServerLoginNetHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
@@ -35,6 +36,11 @@ public abstract class ServerLoginNetHandlerMixin {
             ITextComponent message = authenticationEvent.getCancelReason();
             disconnect(message);
         }
+    }
+
+    @Inject(method = "disconnect", at = @At("HEAD"))
+    public void onDisconnectionEventInjector(ITextComponent p_194026_1_, CallbackInfo ci) {
+        MinecraftForge.EVENT_BUS.post(new DisconnectEvent(server, gameProfile));
     }
 
     @Inject(method = "tick", cancellable = true, at = @At(value = "INVOKE", target = "Lnet/minecraft/network/login/ServerLoginNetHandler;handleAcceptedLogin()V"))
